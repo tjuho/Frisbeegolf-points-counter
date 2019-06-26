@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 
 const schema = mongoose.Schema({
-  number: Number,
+  playNumber: Number,
   points: Number,
   location: {
     type: mongoose.Schema.Types.ObjectId,

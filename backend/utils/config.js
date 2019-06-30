@@ -9,10 +9,10 @@ if (process.env.NODE_ENV === 'test') {
   mongoUrl = process.env.TEST_MONGODB_URI
 }
 
-
-
+const jwtSecret = process.env.JWT_SECRET
 
 module.exports = {
   mongoUrl,
-  port
+  port,
+  jwtSecret
 }

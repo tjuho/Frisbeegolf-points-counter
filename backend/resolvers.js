@@ -4,11 +4,30 @@ const Play = require('./models/Play')
 const Round = require('./models/Round')
 const User = require('./models/User')
 const jwt = require('jsonwebtoken')
-const JWT_SECRET = 'NEED_HERE_A_SECRET_KEY'
-
+const config = require('./utils/config')
+const JWT_SECRET = config.jwtSecret
+const { GraphQLScalarType } = require('graphql')
+const { Kind } = require('graphql/language')
+const bcrypt = require('bcrypt')
 const pubsub = new PubSub()
 
-module.exports.Resolvers = {
+const resolvers = {
+  Date: new GraphQLScalarType({
+    name: 'Date',
+    description: 'Date custom scalar type',
+    parseValue(value) {
+      return new Date(value); // value from the client
+    },
+    serialize(value) {
+      return value.getTime(); // value sent to the client
+    },
+    parseLiteral(ast) {
+      if (ast.kind === Kind.INT) {
+        return new Date(ast.value) // ast value is always in string format
+      }
+      return null;
+    },
+  }),
   Query: {
     allUsers: async () => {
       const users = await User
@@ -57,21 +76,6 @@ module.exports.Resolvers = {
       })
       return friends
     },
-    login: (root, args) => {
-      const user = await User.findOne({ username: args.username })
-      if (!user) {
-        throw new UserInputError('Username not found');
-      }
-
-      const valid = await bcrypt.compare(args.password, user.password);
-      if (!valid) {
-        throw new UserInputError('Wrong password');
-      }
-      const token = new Token({
-        value: jwt.sign({ userId: user.id }, JWT_SECRET)
-      })
-      return token
-    },
     me: (root, args, context) => {
       return context.currentUser
     },
@@ -79,11 +83,11 @@ module.exports.Resolvers = {
   Mutation: {
     addUser: async (root, args) => {
       console.log('create user', args)
-      if (body.password.length < 3) {
+      if (args.password.length < 3) {
         throw new UserInputError('password should be longer than 3 letters')
       }
       const saltRounds = 10
-      const passwordHash = await bcrypt.hash(body.password, saltRounds)
+      const passwordHash = await bcrypt.hash(args.password, saltRounds)
       const user = new User({
         username: args.username,
         passwordHash
@@ -96,6 +100,23 @@ module.exports.Resolvers = {
         })
       }
       return user
+    },
+    login: async (root, args) => {
+      console.log('login', args.username, args.password)
+      const user = await User.findOne({ username: args.username })
+      if (!user) {
+        throw new UserInputError('Username not found');
+      }
+
+      const valid = await bcrypt.compare(args.password, user.passwordHash);
+      if (!valid) {
+        throw new UserInputError('Wrong password');
+      }
+      const userForToken = {
+        username: user.username,
+        id: user._id,
+      }
+      return { value: jwt.sign(userForToken, JWT_SECRET) }
     },
     addFriend: async (root, args, { currentUser }) => {
       console.log('add friend', args)
@@ -119,7 +140,14 @@ module.exports.Resolvers = {
           invalidArgs: args,
         })
       }
-      return currentUser
+      return friend
+    },
+    addPlay: async (root, args) => {
+      const roung = new Round({
+        location: args.locationId,
+        participants: args.userIds,
+        date: new Date()
+      })
     },
     addPlay: async (root, args) => {
       const foundPlay = await Play
@@ -150,3 +178,4 @@ module.exports.Resolvers = {
     }
   }
 }
+module.exports = resolvers

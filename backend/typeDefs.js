@@ -1,6 +1,7 @@
 const { gql } = require('apollo-server');
 
-module.exports.typeDefs = gql`
+const typeDefs = gql`
+    scalar Date
     type User {
       username: String!
       friends: [String!]
@@ -9,7 +10,6 @@ module.exports.typeDefs = gql`
     type Token {
       value: String!
     }
-
     type Location {
       name: String!
       id: ID!
@@ -53,15 +53,16 @@ module.exports.typeDefs = gql`
       addRound(
         locationId: ID!
         userIds: [ID!]!
-      )
+      ): Round
       addPlay(
         roundId: ID!
         userId: ID!
         playNumber: Int!
         points: Int!
-      )
+      ): Play
     }
     type Subscription {
       playAdded: Play
     }
     `
+module.exports = typeDefs

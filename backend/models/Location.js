@@ -6,7 +6,7 @@ const schema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    minlength: 3
+    minlength: 1
   }
 })
 schema.plugin(uniqueValidator)

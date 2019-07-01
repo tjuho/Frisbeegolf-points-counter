@@ -1,18 +1,15 @@
 const mongoose = require('mongoose')
 
 const schema = mongoose.Schema({
-  date: {
-    type: Date,
-    required: true,
-  },
-  location: {
+  points: Number,
+  play: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Location'
+    ref: 'Play'
   },
-  users: [{
+  user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
-  }]
+  }
 })
 
-module.exports = mongoose.model('Round', schema)
+module.exports = mongoose.model('Play', schema)

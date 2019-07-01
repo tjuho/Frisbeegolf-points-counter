@@ -4,7 +4,7 @@ const typeDefs = gql`
     scalar Date
     type User {
       username: String!
-      friends: [String!]
+      friends: [User!]!
       id: ID!
     }
     type Token {
@@ -16,7 +16,8 @@ const typeDefs = gql`
     }
     type Round {
       date: Date!
-      location: [Location!]!      
+      location: Location!
+      users: [User!]!      
       id: ID!
     }
     type Play {

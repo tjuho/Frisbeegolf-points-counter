@@ -38,14 +38,17 @@ const resolvers = {
     allLocations: async () => {
       const locations = await Location
         .find({})
+      return locations
     },
     allRounds: async (root, args) => {
       let rounds = await Round
         .find({})
+        .populate('users')
         .populate('location')
       if (args.location) {
         rounds = rounds.filter(round => round.location.name = args.location)
       }
+      console.log('all rounds', rounds)
       return rounds
     },
     allPlays: async (root, args) => {
@@ -60,7 +63,7 @@ const resolvers = {
         plays = plays.filter(play => play.number === args.playNumber)
       }
       if (args.username) {
-        plays = plays.filter(play => play.user.username = args.username)
+        plays = plays.filter(play => play.user.username === args.username)
       }
       return plays
     },
@@ -81,6 +84,23 @@ const resolvers = {
     },
   },
   Mutation: {
+    login: async (root, args) => {
+      console.log('login', args.username, args.password)
+      const user = await User.findOne({ username: args.username })
+      if (!user) {
+        throw new UserInputError('Username not found');
+      }
+
+      const valid = await bcrypt.compare(args.password, user.passwordHash);
+      if (!valid) {
+        throw new UserInputError('Wrong password');
+      }
+      const userForToken = {
+        username: user.username,
+        id: user._id,
+      }
+      return { value: jwt.sign(userForToken, JWT_SECRET) }
+    },
     addUser: async (root, args) => {
       console.log('create user', args)
       if (args.password.length < 3) {
@@ -100,23 +120,6 @@ const resolvers = {
         })
       }
       return user
-    },
-    login: async (root, args) => {
-      console.log('login', args.username, args.password)
-      const user = await User.findOne({ username: args.username })
-      if (!user) {
-        throw new UserInputError('Username not found');
-      }
-
-      const valid = await bcrypt.compare(args.password, user.passwordHash);
-      if (!valid) {
-        throw new UserInputError('Wrong password');
-      }
-      const userForToken = {
-        username: user.username,
-        id: user._id,
-      }
-      return { value: jwt.sign(userForToken, JWT_SECRET) }
     },
     addFriend: async (root, args, { currentUser }) => {
       console.log('add friend', args)
@@ -142,12 +145,33 @@ const resolvers = {
       }
       return friend
     },
-    addPlay: async (root, args) => {
-      const roung = new Round({
+    addLocation: async (root, args) => {
+      const location = new Location({
+        name: args.name
+      })
+      try {
+        await location.save()
+      } catch (error) {
+        throw new UserInputError(error.message, {
+          invalidArgs: args
+        })
+      }
+      return location
+    },
+    addRound: async (root, args) => {
+      const round = new Round({
         location: args.locationId,
-        participants: args.userIds,
+        users: args.userIds,
         date: new Date()
       })
+      try {
+        await round.save()
+      } catch (error) {
+        throw new UserInputError(error.message, {
+          invalidArgs: args
+        })
+      }
+      return await Round.findById(round.id).populate('location').populate('users')
     },
     addPlay: async (root, args) => {
       const foundPlay = await Play
@@ -168,8 +192,17 @@ const resolvers = {
         user: args.userId,
         points: args.points
       })
-      await play.save()
-      return play
+      try {
+        await play.save()
+      } catch (error) {
+        throw new UserInputError(error.message, {
+          invalidArgs: args
+        })
+      }
+      return await Play
+        .findById(play.id)
+        .populate('user')
+        .populate('round')
     }
   },
   Subscription: {

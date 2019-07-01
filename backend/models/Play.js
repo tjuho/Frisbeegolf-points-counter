@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const schema = mongoose.Schema({
   playNumber: Number,
   points: Number,
-  location: {
+  round: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Round'
   },

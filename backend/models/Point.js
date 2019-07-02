@@ -12,4 +12,4 @@ const schema = mongoose.Schema({
   }
 })
 
-module.exports = mongoose.model('Play', schema)
+module.exports = mongoose.model('Point', schema)

@@ -22,6 +22,11 @@ const typeDefs = gql`
     }
     type Play {
       round: Round!
+      playNumber: Int!
+      id: ID!
+    }
+    type Point {
+      play: Play!
       user: User!
       points: Int!
       id: ID!
@@ -31,7 +36,8 @@ const typeDefs = gql`
       allLocations: [Location!]!
       allRounds(location: String): [Round!]!
       allPlays(roundId: ID, playNumber: Int, username: String): [Play!]!
-      allFriends(username: String!): [User!]!
+      allPoints(playId: ID): [Point]
+      allFriends(username: String): [User]
       me: User
       login(username: String!, password: String!): Token
     }
@@ -42,7 +48,6 @@ const typeDefs = gql`
       ): User
       addFriend(
         username: String!
-        friend: String!
       ): User
       login(
         username: String!
@@ -57,10 +62,13 @@ const typeDefs = gql`
       ): Round
       addPlay(
         roundId: ID!
-        userId: ID!
         playNumber: Int!
-        points: Int!
       ): Play
+      addPoint(
+        playId: ID!
+        userId: ID!
+        points: Int!
+      ): Point
     }
     type Subscription {
       playAdded: Play

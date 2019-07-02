@@ -1,6 +1,7 @@
 const { PubSub, AuthenticationError, UserInputError } = require('apollo-server')
 const Location = require('./models/Location')
 const Play = require('./models/Play')
+const Point = require('./models/Point')
 const Round = require('./models/Round')
 const User = require('./models/User')
 const jwt = require('jsonwebtoken')
@@ -67,17 +68,45 @@ const resolvers = {
       }
       return plays
     },
-    allFriends: async (root, args) => {
-      let users = await User
-        .find({ username: args.username })
-        .populate('friends')
-      let friends = []
-      users.forEach(user => {
-        user.friends.forEach(friend => {
-          friends.push(friend.username)
-        })
-      })
-      return friends
+    allPoints: async (root, args, context) => {
+      let points
+      if (args.playId) {
+        points = await Point
+          .find({ play: args.playId })
+          .populate('user')
+          .populate('play')
+      } else if (context.currentUser) {
+        points = await Point
+          .find({ user: context.currentUser._id })
+          .populate('user')
+          .populate('play')
+        console.log('points', points, 'current user', context.currentUser._id)
+      } else {
+        points = await Point
+          .find({})
+          .populate('user')
+          .populate('play')
+      }
+      return points
+    },
+    allFriends: async (root, args, context) => {
+      let user
+      if (args.username) {
+        console.log('find friends of', args.username)
+        user = await User
+          .findOne({ username: args.username })
+          .populate('friends')
+        console.log('user friends', user)
+      } else if (context.currentUser) {
+        user = await User
+          .findById(context.currentUser._id)
+          .populate('friends')
+      } else if (args.userId) {
+        user = await User
+          .findById(args.userId)
+          .populate('friends')
+      }
+      return user.friends
     },
     me: (root, args, context) => {
       return context.currentUser
@@ -85,7 +114,6 @@ const resolvers = {
   },
   Mutation: {
     login: async (root, args) => {
-      console.log('login', args.username, args.password)
       const user = await User.findOne({ username: args.username })
       if (!user) {
         throw new UserInputError('Username not found');
@@ -122,15 +150,22 @@ const resolvers = {
       return user
     },
     addFriend: async (root, args, { currentUser }) => {
-      console.log('add friend', args)
+      console.log('make friends with', args.username)
       if (!currentUser) {
         throw new AuthenticationError('Invalid authentication token')
       }
       let friend = await User
-        .findOne({ username: args.friend })
+        .findOne({ username: args.username })
       if (!friend) {
         throw new UserInputError('friend not found', {
-          invalidArgs: args
+          invalidArgs: args.username
+        })
+      }
+      console.log('friend', friend)
+      console.log('index of friend', currentUser.friends.indexOf(friend._id))
+      if (currentUser.friends.indexOf(friend._id) > -1) {
+        throw new UserInputError('you are already friends', {
+          invalidArgs: args.username
         })
       }
       currentUser.friends = currentUser.friends.concat(friend)
@@ -174,35 +209,50 @@ const resolvers = {
       return await Round.findById(round.id).populate('location').populate('users')
     },
     addPlay: async (root, args) => {
-      const foundPlay = await Play
-        .findOneAndUpdate({
+      let play = await Play
+        .findOne({
           playNumber: args.playNumber,
           round: args.roundId,
+        })
+      if (!play) {
+        play = new Play({
+          playNumber: args.playNumber,
+          round: args.roundId,
+        })
+        try {
+          await play.save()
+        } catch (error) {
+          throw new UserInputError(error.message, {
+            invalidArgs: args
+          })
+        }
+      }
+      return play
+    },
+    addPoint: async (root, args) => {
+      let point = await Point
+        .findOneAndUpdate({
+          play: args.playId,
           user: args.userId,
         },
           {
             points: args.points
           })
-      if (foundPlay) {
-        return foundPlay
-      }
-      const play = new Play({
-        playNumber: args.playNumber,
-        round: args.roundId,
-        user: args.userId,
-        points: args.points
-      })
-      try {
-        await play.save()
-      } catch (error) {
-        throw new UserInputError(error.message, {
-          invalidArgs: args
+      if (!point) {
+        point = new Point({
+          play: args.playId,
+          user: args.userId,
+          points: args.points
         })
+        try {
+          await point.save()
+        } catch (error) {
+          throw new UserInputError(error.message, {
+            invalidArgs: args
+          })
+        }
       }
-      return await Play
-        .findById(play.id)
-        .populate('user')
-        .populate('round')
+      return point
     }
   },
   Subscription: {

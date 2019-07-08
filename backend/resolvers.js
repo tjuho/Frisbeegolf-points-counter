@@ -89,27 +89,29 @@ const resolvers = {
       }
       return points
     },
-    allFriends: async (root, args, context) => {
+    allFriends: async (root, args) => {
       let user
       if (args.username) {
-        console.log('find friends of', args.username)
         user = await User
           .findOne({ username: args.username })
           .populate('friends')
         console.log('user friends', user)
-      } else if (context.currentUser) {
-        user = await User
-          .findById(context.currentUser._id)
-          .populate('friends')
       } else if (args.userId) {
         user = await User
           .findById(args.userId)
           .populate('friends')
       }
+      if (!user) {
+        throw new UserInputError('Username/id not found');
+      }
       return user.friends
     },
-    me: (root, args, context) => {
-      return context.currentUser
+    me: async (root, args, context) => {
+      if (!context.currentUser) {
+        throw new UserInputError('invalid token');
+      }
+      return await User.findById(context.currentUser._id)
+        .populate('friends')
     },
   },
   Mutation: {
@@ -169,7 +171,9 @@ const resolvers = {
         })
       }
       currentUser.friends = currentUser.friends.concat(friend)
-      friend.friends = friend.friends.concat(currentUser)
+      if (friend.friends.indexOf(currentUser._id) === -1) {
+        friend.friends = friend.friends.concat(currentUser)
+      }
       try {
         await currentUser.save()
         await friend.save()
@@ -178,7 +182,8 @@ const resolvers = {
           invalidArgs: args,
         })
       }
-      return friend
+      return await friend
+        .populate('friends')
     },
     addLocation: async (root, args) => {
       const location = new Location({
@@ -200,13 +205,15 @@ const resolvers = {
         date: new Date()
       })
       try {
-        await round.save()
+        return await round
+          .save()
+          .populate('location')
+          .populate('users')
       } catch (error) {
         throw new UserInputError(error.message, {
           invalidArgs: args
         })
       }
-      return await Round.findById(round.id).populate('location').populate('users')
     },
     addPlay: async (root, args) => {
       let play = await Play
@@ -227,7 +234,8 @@ const resolvers = {
           })
         }
       }
-      return play
+      return await play
+        .populate('round')
     },
     addPoint: async (root, args) => {
       let point = await Point
@@ -238,6 +246,8 @@ const resolvers = {
           {
             points: args.points
           })
+        .populate('play')
+        .populate('user')
       if (!point) {
         point = new Point({
           play: args.playId,
@@ -245,7 +255,10 @@ const resolvers = {
           points: args.points
         })
         try {
-          await point.save()
+          await point
+            .save()
+            .populate('play')
+            .populate('user')
         } catch (error) {
           throw new UserInputError(error.message, {
             invalidArgs: args
@@ -253,6 +266,34 @@ const resolvers = {
         }
       }
       return point
+    },
+    deleteUser: async (root, args, context) => {
+      const user = await User.findOne({ username: args.username })
+      if (!user) {
+        throw new UserInputError('Username not found');
+      }
+      const friends = await User.find({ friends: user })
+      friends.forEach(async (friend) => {
+        await User.findByIdAndUpdate(
+          friend._id,
+          {
+            friends: friend.friends.filter(item => item._id.toString() !== user._id.toString())
+          })
+      });
+      return await User.findByIdAndDelete(user._id)
+    },
+    deleteRound: async (root, args) => {
+      const round = await Round.findById(args.roundId)
+      if (!round) {
+        throw new UserInputError('Round id not found');
+      }
+      const plays = Play.find({ roundId: round.id })
+      await Point.deleteMany({ playId: { $in: plays.map(play => play.id) } })
+      await Play.deleteMany({ roundId: round.id })
+      return await Round.findByIdAndDelete(args.roundId)
+    },
+    deleteLocation: async (root, args) => {
+      return await Location.findOneAndDelete({ name: args.name })
     }
   },
   Subscription: {

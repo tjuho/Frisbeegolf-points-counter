@@ -42,6 +42,10 @@ const typeDefs = gql`
       login(username: String!, password: String!): Token
     }
     type Mutation {
+      login(
+        username: String!
+        password: String!
+      ): Token
       addUser(
         username: String!
         password: String!
@@ -49,10 +53,6 @@ const typeDefs = gql`
       addFriend(
         username: String!
       ): User
-      login(
-        username: String!
-        password: String!
-      ): Token
       addLocation(
         name: String!
       ): Location
@@ -69,6 +69,15 @@ const typeDefs = gql`
         userId: ID!
         points: Int!
       ): Point
+      deleteUser(
+        username: String!
+        ): User
+      deleteRound(
+        roundId: ID!
+      ): Round
+      deleteLocation(
+        name: String!
+      ): Location
     }
     type Subscription {
       playAdded: Play

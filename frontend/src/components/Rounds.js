@@ -18,11 +18,13 @@ const Rounds = (props) => {
   return (
     <div>
       <table>
-        <h2>Rounds</h2>
         <tbody>
+          <tr key='header'>
+            <th>Rounds</th>
+          </tr>
           {rounds.map(round =>
             <tr key={round.id}>
-              <td>
+              <td onClick={props.onRoundClicked ? props.onRoundClicked(round.id) : () => { console.log('round id clicked', round.id) }}>
                 {round.location.name} {round.date}
               </td>
             </tr>

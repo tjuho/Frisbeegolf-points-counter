@@ -15,9 +15,9 @@ const typeDefs = gql`
       id: ID!
     }
     type Round {
-      date: Date!
       location: Location!
       users: [User!]!      
+      date: Date!
       id: ID!
     }
     type Play {

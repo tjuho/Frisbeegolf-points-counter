@@ -12,18 +12,18 @@ const Locations = (props) => {
     return <div>error...</div>
   }
   const locations = props.result.data.allLocations
-  console.log('all locations', locations)
-  locations.forEach(location => {
-    console.log('location', location.name, location.id)
-  })
   return (
     <div>
-      <h2>Locations</h2>
       <table>
         <tbody>
+          <tr key='header'>
+            <th>Locations</th>
+          </tr>
           {locations.map(location =>
             <tr key={location.id}  >
-              <td>
+              <td onClick={props.onLocationClicked ?
+                props.onLocationClicked(location) :
+                () => { console.log('location id clicked', location.id) }}>
                 {location.name}
               </td>
             </tr>

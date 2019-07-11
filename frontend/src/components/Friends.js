@@ -15,15 +15,18 @@ const Friends = (props) => {
   if (!friends) {
     return null
   }
-
   return (
     <div>
       <table>
-        <h2>Friends</h2>
         <tbody>
+          <tr key='header'>
+            <th>Friends</th>
+          </tr>
           {friends.map(friend =>
             <tr key={friend.id}>
-              <td>
+              <td onClick={props.onFriendClicked ?
+                props.onFriendClicked(friend) :
+                () => { console.log('friend id clicked', friend.id) }}>
                 {friend.username}
               </td>
             </tr>

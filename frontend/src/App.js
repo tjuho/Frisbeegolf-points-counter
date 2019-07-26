@@ -14,7 +14,8 @@ import {
   ALL_ROUNDS,
   LOGIN,
   ADD_LOCATION,
-  ADD_ROUND
+  ADD_ROUND,
+  ADD_POINTS
 } from './querys'
 
 const App = () => {
@@ -29,6 +30,9 @@ const App = () => {
   const [users, setUsers] = useState([])
   const [location, setLocation] = useState(null)
   const [round, setRound] = useState(null)
+  const [playNumber, setPlayNumber] = useState(0)
+  const [pointChanges, setPointChanges] = useState([])
+  const [players, setPlayers] = useState([])
   console.log('users', users)
   console.log('location', location)
   useEffect(() => {
@@ -53,6 +57,19 @@ const App = () => {
     }
   }
 
+  const handlePointsChange = (player, newPoints) =>
+    () => {
+      let temp = []
+      for (let i = 0; i < players.length; i++) {
+        temp[i] = pointChanges[i]
+        if (player === players[i]) {
+          temp[i] = newPoints
+        }
+      }
+      setPointChanges(temp)
+    }
+
+
   const includedIn = (set, object) =>
     set.map(p => p.id).includes(object.id)
 
@@ -63,6 +80,7 @@ const App = () => {
     setPage('main')
     client.resetStore()
   }
+
   const logout = () => {
     console.log('logout')
     setToken(null)
@@ -80,6 +98,7 @@ const App = () => {
         setUsers(users.concat(user))
       }
     }
+
   const onLocationClicked = (newLocation) =>
     () => {
       if (location === newLocation) {
@@ -91,20 +110,34 @@ const App = () => {
 
   const startNewRound = () => {
     setPage('round with location and users', location, users)
-
   }
+
   const loginMutation = useMutation(LOGIN, {
     onError: handleError
   })
+
   const allLocationsQuery = useQuery(ALL_LOCATIONS, {
     skip: !token && page !== 'main'
   })
+
   const allFriendsQuery = useQuery(ALL_FRIENDS, {
     skip: !token && page !== 'main'
   })
+
   const allRoundsQuery = useQuery(ALL_ROUNDS, {
     skip: !token && page !== 'main'
   })
+  const allPlays = useQuery
+
+  const addPointsMutation = useMutation(ADD_POINTS, {
+    onError: handleError,
+    update: (store, response) => {
+      const dataInStore = store.readQuery({
+        query: ALL_POINTS
+      })
+    }
+  })
+
   const addLocationMutation = useMutation(ADD_LOCATION, {
     onError: handleError,
     update: (store, response) => {
@@ -120,12 +153,12 @@ const App = () => {
       }
     }
   })
+
   const addRoundMutation = useMutation(ADD_ROUND, {
     onError: handleError,
     update: (store, response) => {
       const dataInStore = store.readQuery({ query: ALL_ROUNDS })
       const addedRound = response.data.addRound
-
       if (!includedIn(dataInStore.allRounds, addedRound)) {
         dataInStore.allRounds.push(addedRound)
         client.writeQuery({
@@ -206,6 +239,9 @@ const App = () => {
           onUserClicked={onUserClicked}
           show={page === 'new round'}
         />
+      }
+      {
+
       }
     </div >
   )

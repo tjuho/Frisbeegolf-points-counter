@@ -26,18 +26,19 @@ const typeDefs = gql`
       id: ID!
     }
     type Point {
-      play: Play!
+      round: Round!
       user: User!
+      trackIndex: Int!
       points: Int!
       id: ID!
     }
-    type Query {
+    type Query {      
       allUsers: [User!]!
       allLocations: [Location!]!
       allRounds(location: String): [Round!]!
       allPlays(roundId: ID, playNumber: Int, username: String): [Play!]!
-      allPoints(playId: ID): [Point]
-      allFriends(username: String): [User]
+      allPoints(roundId: ID!, userId: ID, trackIndex: Int): [Point]
+      allFriends(username: String): [User]      
       me: User
       login(username: String!, password: String!): Token
     }
@@ -65,10 +66,17 @@ const typeDefs = gql`
         playNumber: Int!
       ): Play
       addPoint(
-        playId: ID!
+        roundId: ID!
         userId: ID!
+        trackIndex: Int!
         points: Int!
       ): Point
+      addNewTrack(
+        roundId: ID!
+      ): [Point]
+      deleteLastTrack(
+        roundId: ID!
+      ): Int
       deleteUser(
         username: String!
         ): User

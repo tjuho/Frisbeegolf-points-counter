@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const ObjectId = require('mongoose').Types.ObjectId
 
 const schema = mongoose.Schema({
   date: {
@@ -14,5 +15,7 @@ const schema = mongoose.Schema({
     ref: 'User'
   }]
 })
-
+ObjectId.prototype.valueOf = function () {
+  return this.toString();
+}
 module.exports = mongoose.model('Round', schema)

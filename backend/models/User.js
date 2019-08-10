@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const uniqueValidator = require('mongoose-unique-validator')
+const ObjectId = require('mongoose').Types.ObjectId
 
 const typeDefs = new mongoose.Schema({
   username: {
@@ -17,6 +18,10 @@ const typeDefs = new mongoose.Schema({
     ref: 'User'
   }]
 })
+
+ObjectId.prototype.valueOf = function () {
+  return this.toString();
+};
 
 typeDefs.set('toJSON', {
   transform: (document, returnedObject) => {

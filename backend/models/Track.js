@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 
 const schema = mongoose.Schema({
   points: Number,
-  playNumber: Number,
+  trackIndex: Number,
   round: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Round'

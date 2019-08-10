@@ -12,6 +12,16 @@ const { Kind } = require('graphql/language')
 const bcrypt = require('bcrypt')
 const pubsub = new PubSub()
 
+const maxValue = (arr) => {
+  let temp = -1
+  arr.forEach(element => {
+    if (temp < element) {
+      temp = element
+    }
+  });
+  return temp
+}
+
 const resolvers = {
   Date: new GraphQLScalarType({
     name: 'Date',
@@ -68,24 +78,19 @@ const resolvers = {
       }
       return plays
     },
-    allPoints: async (root, args, context) => {
-      let points
-      if (args.playId) {
+    allPoints: async (root, args) => {
+      let points = []
+      if (args.roundId) {
         points = await Point
-          .find({ play: args.playId })
+          .find({ round: args.roundId })
           .populate('user')
-          .populate('play')
-      } else if (context.currentUser) {
-        points = await Point
-          .find({ user: context.currentUser._id })
-          .populate('user')
-          .populate('play')
-        console.log('points', points, 'current user', context.currentUser._id)
-      } else {
-        points = await Point
-          .find({})
-          .populate('user')
-          .populate('play')
+          .populate('round')
+        if (args.userId) {
+          points = points.filter(point => point.user._id === args.userId)
+        }
+        if (args.trackNumber) {
+          points = points.filter(point => point.trackNumber === args.trackNumber)
+        }
       }
       return points
     },
@@ -205,10 +210,12 @@ const resolvers = {
         date: new Date()
       })
       try {
-        return await round
+        await round
           .save()
+        return await round
           .populate('location')
           .populate('users')
+
       } catch (error) {
         throw new UserInputError(error.message, {
           invalidArgs: args
@@ -238,26 +245,32 @@ const resolvers = {
         .populate('round')
     },
     addPoint: async (root, args) => {
+      console.log('add point args', args)
       let point = await Point
         .findOneAndUpdate({
-          play: args.playId,
+          round: args.roundId,
           user: args.userId,
+          trackIndex: args.trackIndex
         },
           {
             points: args.points
-          })
-        .populate('play')
+          },
+          { new: true })
+        .populate('round')
         .populate('user')
+      console.log('updated point', point)
       if (!point) {
         point = new Point({
-          play: args.playId,
+          round: args.roundId,
           user: args.userId,
-          points: args.points
+          points: args.points,
+          trackIndex: args.trackIndex
         })
         try {
           await point
             .save()
-            .populate('play')
+          await point
+            .populate('round')
             .populate('user')
         } catch (error) {
           throw new UserInputError(error.message, {
@@ -266,6 +279,65 @@ const resolvers = {
         }
       }
       return point
+    },
+    addNewTrack: async (root, args) => {
+      console.log('be roudn id', args.roundId)
+      const round = await Round
+        .findById(args.roundId)
+        .populate('user')
+      let allPoints = await Point
+        .find({ round: round._id })
+      let nextIndex = 1 + maxValue(allPoints.map(point => point.trackIndex))
+      let points = []
+      console.log('round users', round.users, 'max track index', nextIndex)
+      for (let i = 0; i < round.users.length; i++) {
+        const user = round.users[i]
+        point = new Point({
+          round: args.roundId,
+          user: user._id,
+          points: 3,
+          trackIndex: nextIndex
+        })
+        try {
+          console.log('point to save', point)
+          await point
+            .save()
+          await point
+            .populate('round')
+            .populate('user')
+          console.log('point saved', point)
+          points.push(point)
+        } catch (error) {
+          throw new UserInputError(error.message, {
+            invalidArgs: args
+          })
+        }
+      }
+      console.log('points', points)
+      return await Point
+        .find({
+          round: args.roundId,
+          trackIndex: nextIndex
+        })
+        .populate('user')
+        .populate('round')
+    },
+    deleteLastTrack: async (root, args) => {
+      let allPoints = await Point
+        .find({ round: args.roundId })
+      allPoints
+        .sort((p1, p2) => p2.trackIndex - p1.trackIndex)
+      if (allPoints.length > 0) {
+        const maxIndex = allPoints[0].trackIndex
+        const points = await Point.find({ trackIndex: maxIndex })
+        for (let i = 0; i < points.length; i++) {
+          const point = points[i]
+          console.log('point to delete', point)
+          await Point.findByIdAndDelete(point._id)
+        }
+        return maxIndex
+      }
+      return -1
     },
     deleteUser: async (root, args, context) => {
       const user = await User.findOne({ username: args.username })

@@ -33,34 +33,7 @@ export const ALL_ROUNDS = gql`
   }
 }
 `
-export const ALL_TEES = gql`
-{
-  allTees($roundId: ID!, userIds: [ID!]!) {
-    points
-    playNumber
-    id
-  }
-}
-`
-export const ALL_PLAYS = gql`
-{
-  allPlays($roundId: ID!, userId: ID!) {
-    playNumber
-    round
-    id
-  }
-}
-`
-export const ALL_POINTS = gql`
-{
-  allPoints($roundId: ID!, $userId: ID!, $trackNumber: Int!) {
-    points
-    locations{name}
-    date
-    id
-  }
-}
-`
+
 export const ME = gql`
 {
   me{

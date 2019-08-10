@@ -129,21 +129,15 @@ const App = () => {
   })
   const allPlays = useQuery
 
-  const addPointsMutation = useMutation(ADD_POINTS, {
-    onError: handleError,
-    update: (store, response) => {
-      const dataInStore = store.readQuery({
-        query: ALL_POINTS
-      })
-    }
-  })
-
   const addLocationMutation = useMutation(ADD_LOCATION, {
     onError: handleError,
     update: (store, response) => {
       const dataInStore = store.readQuery({ query: ALL_LOCATIONS })
+      const friends = store.readQuery({ query: ALL_FRIENDS })
+      console.log('firends store', friends)
       const addedLocation = response.data.addLocation
-
+      console.log('addedLocation', addedLocation)
+      console.log('data in store all locations', dataInStore.allLocations)
       if (!includedIn(dataInStore.allLocations, addedLocation)) {
         dataInStore.allLocations.push(addedLocation)
         client.writeQuery({

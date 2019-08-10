@@ -1,0 +1,40 @@
+query{allUsers{id}}# Write your query or mutation here
+
+query{allRounds{
+  id
+  users{id}}}
+
+mutation{
+  addNewTrack(roundId: "5d19c8cc9629e15ef438eb98"){
+    points,
+    trackIndex,
+    id
+  }
+}
+
+mutation{
+  deleteLastTrack(roundId: "5d19c8cc9629e15ef438eb98")
+}
+
+
+mutation{
+  addPoint(
+    roundId: "5d19c8cc9629e15ef438eb98",
+    userId: "5d18f79935fc7623c728bed7",
+    trackIndex: 1,
+    points: 4
+  ){
+    user{id},
+    trackIndex,
+    points
+  }
+}
+
+query{
+  allPoints(roundId: "5d19c8cc9629e15ef438eb98"){
+    points
+    trackIndex
+    user{id}
+    id
+  }
+}

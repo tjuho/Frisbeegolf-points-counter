@@ -51,7 +51,25 @@ const resolvers = {
         .find({})
       return locations
     },
-    allRounds: async (root, args) => {
+    allRounds: async (root, args, context) => {
+      if (args.id) {
+        let round = await Round
+          .findById(args.id)
+        if (round) {
+          return await round
+            .populate('users')
+            .populate('location')
+        } else {
+          throw new UserInputError('Round not found');
+        }
+      }
+      if (context.currentUser) {
+        let rounds = await Round
+          .find({ users: context.currentUser })
+          .populate('users')
+          .populate('location')
+        return rounds
+      }
       let rounds = await Round
         .find({})
         .populate('users')

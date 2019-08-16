@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
 
+const maxValue = (arr) => {
+  let temp = -1
+  arr.forEach(element => {
+    if (temp < element) {
+      temp = element
+    }
+  });
+  return temp
+}
+
 const Round = (props) => {
   if (props.players && props.players.length === 0) {
     console.log('choose players')
@@ -16,16 +26,6 @@ const Round = (props) => {
   const trackIndex = props.trackIndex
   const allPoints = props.result.data.allPoints
   let order = props.players.slice()
-  const maxValue = (arr) => {
-    let temp = -1
-    arr.forEach(element => {
-      if (temp < element) {
-        temp = element
-      }
-    });
-    return temp
-  }
-
   const handleDeleteLastTrackClick = () => {
     props.deleteLastTrack()
   }
@@ -79,8 +79,7 @@ const Round = (props) => {
       .sort((p1, p2) => p1.trackIndex - p2.trackIndex)
     maxTrackIndexes.push(maxValue(playerPlays.map(play => play.trackIndex)))
   })
-  const maxTrackIndex = maxValue(maxTrackIndexes)
-  if (maxValue(maxTrackIndexes) + 1 === trackIndex) {
+  if (trackIndex > -1 && maxValue(maxTrackIndexes) + 1 === trackIndex) {
     props.addNewTrack()
   }
   return (

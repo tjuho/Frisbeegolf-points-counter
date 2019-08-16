@@ -2,68 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useApolloClient } from 'react-apollo-hooks'
 import gql from "graphql-tag";
 import Round from './components/Round'
-import './App.css';
-const ADD_POINT = gql`
-  mutation addPoint($roundId: ID!, $trackIndex:Int!, $userId: ID!, $points: Int!){
-    addPoint(
-      roundId: $roundId,
-      userId: $userId,
-      trackIndex: $trackIndex,
-      points: $points
-    ){
-      trackIndex,
-      user{id, username},
-      round{id},
-      points,
-      id
-    }
-  }
-`
-const ADD_NEW_TRACK = gql`
-  mutation addNewTrack($roundId: ID!){
-    addNewTrack(
-      roundId: $roundId
-    ){
-      trackIndex,
-      user{id, username},
-      round{id},
-      points,
-      id
-    }
-  }
-`
-const DELETE_LAST_TRACK = gql`
-  mutation deleteLastTrack($roundId: ID!){
-    deleteLastTrack(
-      roundId: $roundId
-    )
-  }
-`
-const ALL_POINTS = gql`
-  query ($roundId: ID!) {
-    allPoints(
-      roundId: $roundId
-    ){
-    trackIndex,
-    user{id, username},
-    round{id},
-    points,
-    id
-    }
-  }
-`
-const ALL_USERS = gql`
-query {
-  allUsers{
-    username,
-    id
-  }
-}
-`
+import Rounds from './components/Rounds'
+import Friends from './components/Friends'
+import Me from './components/Me'
+import {
+  ALL_FRIENDS,
+  ALL_LOCATIONS,
+  ALL_ROUNDS,
+  ALL_POINTS,
+  ALL_USERS,
+  LOGIN,
+  ADD_LOCATION,
+  ADD_ROUND,
+  ADD_POINT,
+  ADD_NEW_TRACK,
+  DELETE_LAST_TRACK
+} from './querys'
 
 
 function Appql() {
   const [roundId, setRoundId] = useState("5d4d5ce0638b3f73e19104fe")
+  const [round, setRound] = useState(null)
   //  const [currentPlayers, setCurrentPlayers] = useState(["5d18f79935fc7623c728bed7", "5d19bb0b462f0454243492d9"])
   const [currentPlayers, setCurrentPlayers] = useState([])
   const [errorMessage, setErrorMessage] = useState(null)
@@ -92,15 +51,11 @@ function Appql() {
   const allUsersQuery = useQuery(ALL_USERS, {
     skip: currentPlayers && currentPlayers.length > 0
   })
+  /*
   if (!allUsersQuery.loading && !allUsersQuery.error && allUsersQuery.data) {
     setCurrentPlayers(allUsersQuery.data.allUsers)
   }
-  const allPointsQuery = useQuery(ALL_POINTS, {
-    skip: false,
-    variables: {
-      roundId
-    },
-  })
+  */
   const addPointMutation = useMutation(ADD_POINT, {
     onError: handleError,
     update: (store, response) => {
@@ -248,17 +203,31 @@ function Appql() {
   const changeTrack = (index) => {
     setTrackIndex(index)
   }
+  const setNewRound = (round) => {
+    setRound(round)
+
+  }
+  const allPointsQuery = useQuery(ALL_POINTS, {
+    skip: true,
+    variables: {
+      roundId
+    },
+  })
+
+  const allRoundsQuery = useQuery(ALL_ROUNDS, {
+    skip: false
+  })
 
   return (
     <div>
       {errorMessage && <div>errorMessage</div>}
+      <Rounds
+        result={allRoundsQuery}
+        setRound={setRound}
+        show={true}
+      />
       <Round
-        result={useQuery(ALL_POINTS, {
-          variables: {
-            roundId: roundId
-          }
-        }
-        )}
+        result={allPointsQuery}
         addNewTrack={addNewTrack}
         updatePoint={updatePoint}
         deleteLastTrack={deleteLastTrack}

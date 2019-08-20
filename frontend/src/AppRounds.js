@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useApolloClient } from 'react-apollo-hooks'
 import gql from "graphql-tag";
 import Round from './components/Round'
+import AddRound from './components/AddRound'
 import Rounds from './components/Rounds'
 import Friends from './components/Friends'
 import Me from './components/Me'
@@ -21,10 +22,11 @@ import {
 
 
 function Appql() {
-  const [roundId, setRoundId] = useState("5d4d5ce0638b3f73e19104fe")
+  const [roundId, setRoundId] = useState(null)
   const [round, setRound] = useState(null)
-  //  const [currentPlayers, setCurrentPlayers] = useState(["5d18f79935fc7623c728bed7", "5d19bb0b462f0454243492d9"])
-  const [currentPlayers, setCurrentPlayers] = useState([])
+  //  const [currentUsers, setCurrentPlayers] = useState(["5d18f79935fc7623c728bed7", "5d19bb0b462f0454243492d9"])
+  const [currentUsers, setCurrentPlayers] = useState([])
+  const [currentLocation, setCurrentLocation] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null)
   const [trackIndex, setTrackIndex] = useState(0)
   const [finished, setFinished] = useState(false)
@@ -48,9 +50,6 @@ function Appql() {
       }
     }
   }
-  const allUsersQuery = useQuery(ALL_USERS, {
-    skip: currentPlayers && currentPlayers.length > 0
-  })
   /*
   if (!allUsersQuery.loading && !allUsersQuery.error && allUsersQuery.data) {
     setCurrentPlayers(allUsersQuery.data.allUsers)
@@ -155,6 +154,24 @@ function Appql() {
       }
     }
   })
+  const addRoundMutation = useMutation(ADD_ROUND, {
+    onError: handleError,
+    update: (store, response) => {
+      console.log('add round response', response)
+      let dataInStore = store.readQuery({
+        query: ALL_ROUNDS
+      })
+      console.log('data in store before round update', dataInStore.allRounds)
+      const addedRound = response.data.addRound
+      console.log('added round', addedRound)
+      const temp = dataInStore.allRounds.filter(round => round.id !== addedRound.id).concat(addedRound)
+      console.log('store after', temp)
+      client.writeQuery({
+        query: ALL_ROUNDS,
+        data: { allRounds: temp }
+      })
+    }
+  })
   const addNewTrack = async () => {
     //console.log('add new track to round', roundId)
     //try {
@@ -205,10 +222,16 @@ function Appql() {
   }
   const setNewRound = (round) => {
     setRound(round)
-
+    setRoundId(round.id)
+    setTrackIndex(-1)
+    console.log('round set to', round, 'roundId set to', roundId)
   }
+  const allLocationsQuery = useQuery(ALL_LOCATIONS)
+  const allUsersQuery = useQuery(ALL_USERS, {
+    skip: false
+  })
   const allPointsQuery = useQuery(ALL_POINTS, {
-    skip: true,
+    skip: !roundId,
     variables: {
       roundId
     },
@@ -217,24 +240,67 @@ function Appql() {
   const allRoundsQuery = useQuery(ALL_ROUNDS, {
     skip: false
   })
-
+  const handleLocationClick = (location) =>
+    () => {
+      console.log('location clicked', location)
+      if (location === currentLocation) {
+        setCurrentLocation(null)
+      } else {
+        setCurrentLocation(location)
+      }
+    }
+  const handleUserClick = (user) =>
+    () => {
+      console.log('user clicked', user)
+      if (currentUsers.includes(user)) {
+        setCurrentPlayers(currentUsers.filter(player => player !== user))
+      } else {
+        setCurrentPlayers(currentUsers.concat(user))
+      }
+    }
+  const startNewRound = async () => {
+    console.log('start new round', currentLocation.name, currentUsers.map(user => user.username))
+    const response = await addRoundMutation(
+      {
+        variables: {
+          userIds: currentUsers.map(user => user.id),
+          locationId: currentLocation.id
+        }
+      }
+    )
+    console.log('response', response)
+    setCurrentLocation(null)
+    setCurrentPlayers([])
+    setRound(response.data.addRound)
+    setRoundId(response.data.addRound.id)
+  }
   return (
     <div>
       {errorMessage && <div>errorMessage</div>}
-      <Rounds
-        result={allRoundsQuery}
-        setRound={setRound}
+      <AddRound
+        allLocationsQuery={allLocationsQuery}
+        allUsersQuery={allUsersQuery}
+        handleLocationClick={handleLocationClick}
+        handleUserClick={handleUserClick}
+        currentLocation={currentLocation}
+        currentUsers={currentUsers}
+        startNewRound={startNewRound}
         show={true}
       />
-      <Round
+      <Rounds
+        result={allRoundsQuery}
+        setRound={setNewRound}
+        show={true}
+      />
+      {roundId && <Round
         result={allPointsQuery}
+        round={round}
         addNewTrack={addNewTrack}
         updatePoint={updatePoint}
         deleteLastTrack={deleteLastTrack}
         changeTrack={changeTrack}
-        players={currentPlayers}
         trackIndex={trackIndex}
-      />
+      />}
     </div>
   )
 

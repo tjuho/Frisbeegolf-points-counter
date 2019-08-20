@@ -31,7 +31,7 @@ const Rounds = (props) => {
           </tr>
           {rounds.map(round => {
             const d = new Date(round.date)
-            const dateString = d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear()
+            const dateString = d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds()
             return (
               <tr onClick={handleRoundClick(round)} key={round.id}>
                 <td>{round.location.name}</td><td>{dateString}</td>

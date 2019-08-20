@@ -13,7 +13,8 @@ const schema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }
-}).index({ user: 1, trackIndex: 1 }, { unique: true })
+})
+schema.index({ round: 1, user: 1, trackIndex: 1 }, { unique: true })
 /*
 ObjectId.prototype.valueOf = function () {
   return this.toString();

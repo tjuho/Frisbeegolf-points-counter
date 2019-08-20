@@ -11,8 +11,9 @@ const maxValue = (arr) => {
 }
 
 const Round = (props) => {
-  if (props.players && props.players.length === 0) {
-    console.log('choose players')
+  console.log('round', props.round)
+  if (!props.round) {
+    console.log('no round chosen')
     return null
   }
   if (props.result.loading) {
@@ -23,9 +24,12 @@ const Round = (props) => {
     console.log('error', props.result.error)
     return <div>error...</div>
   }
+  console.log('all points', props.result.data.allPoints)
+  console.log('players ', props.round.users)
+  const players = props.round.users
   const trackIndex = props.trackIndex
   const allPoints = props.result.data.allPoints
-  let order = props.players.slice()
+  let order = players.slice()
   const maxTrackIndex = maxValue(allPoints.map(play => play.trackIndex))
   if (trackIndex === -1) {
     props.changeTrack(maxTrackIndex)
@@ -74,15 +78,8 @@ const Round = (props) => {
     }
     return 'err'
   }
-  let maxTrackIndexes = []
-  props.players.forEach(player => {
-    const playerPlays = allPoints
-      .filter(play => play.user.id === player.id)
-    playerPlays
-      .sort((p1, p2) => p1.trackIndex - p2.trackIndex)
-    maxTrackIndexes.push(maxValue(playerPlays.map(play => play.trackIndex)))
-  })
-  if (trackIndex > -1 && maxValue(maxTrackIndexes) + 1 === trackIndex) {
+
+  if (maxTrackIndex + 1 === trackIndex) {
     props.addNewTrack()
   }
   return (
@@ -96,27 +93,29 @@ const Round = (props) => {
         <table>
           <tbody>
             <tr><th>order</th><th>player</th></tr>
-            {props.players.map(player => {
+            {players.map(player => {
               const playerPlays = allPoints.filter(point => point.user.id === player.id)
               if (playerPlays) {
                 playerPlays.sort((p1, p2) => p1.trackIndex - p2.trackIndex)
                 const total = playerPlays.length === 0 ?
                   0 : playerPlays.map(play => play.points).reduce((tot, point) => tot + point)
                 return (
-                  <tr key={player.id}>
+                  < tr key={player.id} >
                     <td key='order'>{orderOf(player)}</td>
-                    <td key={player.id}>{player.username}</td>
-                    {playerPlays.map(play => {
-                      if (play.trackIndex === trackIndex) {
-                        return (<td key={play.trackIndex + player.id}>
-                          <button onClick={handlePointChangeClick(play.points - 1, play.user)}>-</button>
-                          {play.points}
-                          <button onClick={handlePointChangeClick(play.points + 1, play.user)}>+</button>
-                        </td>)
-                      } else {
-                        return (<td key={play.trackIndex + player.id}>{play.points}</td>)
-                      }
-                    })}
+                    <td key={player.username}>{player.username}</td>
+                    {
+                      playerPlays.map(play => {
+                        if (play.trackIndex === trackIndex) {
+                          return (<td key={play.trackIndex + player.id}>
+                            <button onClick={handlePointChangeClick(play.points - 1, play.user)}>-</button>
+                            {play.points}
+                            <button onClick={handlePointChangeClick(play.points + 1, play.user)}>+</button>
+                          </td>)
+                        } else {
+                          return (<td key={play.trackIndex + player.id}>{play.points}</td>)
+                        }
+                      })
+                    }
                     <td>tot:{total}</td>
                   </tr>
                 )

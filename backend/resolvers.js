@@ -222,6 +222,7 @@ const resolvers = {
       return location
     },
     addRound: async (root, args) => {
+      console.log('users', args.userIds, 'location', args.locationId)
       const round = new Round({
         location: args.locationId,
         users: args.userIds,
@@ -230,11 +231,11 @@ const resolvers = {
       try {
         await round
           .save()
-        return await round
+        return await Round.findById(round._id)
           .populate('location')
           .populate('users')
-
       } catch (error) {
+        console.log('error', error.message)
         throw new UserInputError(error.message, {
           invalidArgs: args
         })
@@ -371,6 +372,10 @@ const resolvers = {
           })
       });
       return await User.findByIdAndDelete(user._id)
+    },
+    deleteAllRounds: async (root, args) => {
+      await Round.deleteMany({})
+      await Point.deleteMany({})
     },
     deleteRound: async (root, args) => {
       const round = await Round.findById(args.roundId)

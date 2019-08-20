@@ -80,6 +80,7 @@ const typeDefs = gql`
       deleteUser(
         username: String!
         ): User
+      deleteAllRounds: [Round]
       deleteRound(
         roundId: ID!
       ): Round

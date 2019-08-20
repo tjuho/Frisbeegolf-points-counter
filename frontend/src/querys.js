@@ -27,8 +27,8 @@ export const ALL_LOCATIONS = gql`
 export const ALL_ROUNDS = gql`
 {
   allRounds {
-    users{username}
-    location{name}
+    users{username, id}
+    location{name, id}
     date
     id
   }
@@ -78,6 +78,14 @@ export const ADD_ROUND = gql`
       locationId: $locationId
       userIds: $userIds
     ){
+      location{
+        name
+        id
+      }
+      users{
+        username
+        id
+      }
       date
       id
     }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useApolloClient } from 'react-apollo-hooks'
-import gql from "graphql-tag";
+import { Container } from 'semantic-ui-react'
 import Round from './components/Round'
 import AddRound from './components/AddRound'
 import Rounds from './components/Rounds'
@@ -22,14 +22,13 @@ import {
 
 
 function Appql() {
-  const [roundId, setRoundId] = useState(null)
-  const [round, setRound] = useState(null)
+  const [currentRoundId, setCurrentRoundId] = useState(null)
+  const [currentRound, setCurrentRound] = useState(null)
   //  const [currentUsers, setCurrentPlayers] = useState(["5d18f79935fc7623c728bed7", "5d19bb0b462f0454243492d9"])
   const [currentUsers, setCurrentPlayers] = useState([])
   const [currentLocation, setCurrentLocation] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null)
   const [trackIndex, setTrackIndex] = useState(0)
-  const [finished, setFinished] = useState(false)
   const client = useApolloClient()
 
   const handleError = (error) => {
@@ -62,7 +61,7 @@ function Appql() {
       let dataInStore = store.readQuery({
         query: ALL_POINTS,
         variables: {
-          roundId
+          roundId: currentRoundId
         },
       })
       console.log('data in store before point update', dataInStore.allPoints)
@@ -73,7 +72,7 @@ function Appql() {
       client.writeQuery({
         query: ALL_POINTS,
         variables: {
-          roundId
+          roundId: currentRoundId
         },
         data: { allPoints: temp }
       })
@@ -89,7 +88,7 @@ function Appql() {
         const dataInStore = store.readQuery({
           query: ALL_POINTS,
           variables: {
-            roundId
+            roundId: currentRoundId
           },
         })
         console.log('points before deletion', dataInStore.allPoints)
@@ -98,7 +97,7 @@ function Appql() {
         client.writeQuery({
           query: ALL_POINTS,
           variables: {
-            roundId
+            roundId: currentRoundId
           },
           data: { allPoints: temp }
         })
@@ -108,7 +107,7 @@ function Appql() {
         const dataInStoreAfter = store.readQuery({
           query: ALL_POINTS,
           variables: {
-            roundId
+            roundId: currentRoundId
           },
         })
         console.log('data in store after deletion', dataInStoreAfter.allPoints, 'track index now', trackIndex)
@@ -122,7 +121,7 @@ function Appql() {
       let dataInStore = store.readQuery({
         query: ALL_POINTS,
         variables: {
-          roundId
+          roundId: currentRoundId
         },
       })
       console.log('data in store before new track push', dataInStore.allPoints)
@@ -138,7 +137,7 @@ function Appql() {
         client.writeQuery({
           query: ALL_POINTS,
           variables: {
-            roundId
+            roundId: currentRoundId
           },
           data: { allPoints: temp }
         })
@@ -147,7 +146,7 @@ function Appql() {
         dataInStore = store.readQuery({
           query: ALL_POINTS,
           variables: {
-            roundId
+            roundId: currentRoundId
           },
         })
         console.log('data in store after new track push', dataInStore)
@@ -177,7 +176,7 @@ function Appql() {
     //try {
     let response = await addNewTrackMutation({
       variables: {
-        roundId: roundId
+        roundId: currentRoundId
       }
     })
     const points = response.data
@@ -192,7 +191,7 @@ function Appql() {
     try {
       const response = await deleteLastTrackMutation({
         variables: {
-          roundId: roundId
+          roundId: currentRoundId
         }
       })
       console.log('response', response.data)
@@ -208,7 +207,7 @@ function Appql() {
           points: points,
           trackIndex: trackIndex,
           userId: userId,
-          roundId: roundId
+          roundId: currentRoundId
         }
       })
       //console.log('response', response.data)
@@ -221,19 +220,19 @@ function Appql() {
     setTrackIndex(index)
   }
   const setNewRound = (round) => {
-    setRound(round)
-    setRoundId(round.id)
+    setCurrentRound(round)
+    setCurrentRoundId(round.id)
     setTrackIndex(-1)
-    console.log('round set to', round, 'roundId set to', roundId)
+    console.log('round set to', currentRound, 'roundId set to', currentRoundId)
   }
   const allLocationsQuery = useQuery(ALL_LOCATIONS)
   const allUsersQuery = useQuery(ALL_USERS, {
     skip: false
   })
   const allPointsQuery = useQuery(ALL_POINTS, {
-    skip: !roundId,
+    skip: !currentRoundId,
     variables: {
-      roundId
+      roundId: currentRoundId
     },
   })
 
@@ -271,13 +270,20 @@ function Appql() {
     console.log('response', response)
     setCurrentLocation(null)
     setCurrentPlayers([])
-    setRound(response.data.addRound)
-    setRoundId(response.data.addRound.id)
+    setCurrentRound(response.data.addRound)
+    setCurrentRoundId(response.data.addRound.id)
+  }
+  const finishRound = () => {
+    console.log('finish round')
+    setCurrentRound(null)
+    setCurrentRoundId(null)
+    setCurrentPlayers([])
+    setCurrentLocation(null)
   }
   return (
     <div>
       {errorMessage && <div>errorMessage</div>}
-      <AddRound
+      {!currentRoundId && <AddRound
         allLocationsQuery={allLocationsQuery}
         allUsersQuery={allUsersQuery}
         handleLocationClick={handleLocationClick}
@@ -286,20 +292,21 @@ function Appql() {
         currentUsers={currentUsers}
         startNewRound={startNewRound}
         show={true}
-      />
-      <Rounds
+      />}
+      {!currentRoundId && <Rounds
         result={allRoundsQuery}
         setRound={setNewRound}
         show={true}
-      />
-      {roundId && <Round
-        result={allPointsQuery}
-        round={round}
+      />}
+      {currentRoundId && <Round
+        allPointsQuery={allPointsQuery}
+        round={currentRound}
         addNewTrack={addNewTrack}
         updatePoint={updatePoint}
         deleteLastTrack={deleteLastTrack}
         changeTrack={changeTrack}
         trackIndex={trackIndex}
+        finishRound={finishRound}
       />}
     </div>
   )

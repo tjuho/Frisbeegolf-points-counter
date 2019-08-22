@@ -9,6 +9,10 @@ const AddRound = (props) => {
     event.preventDefault()
     props.startNewRound()
   }
+  const finishRoundClicked = () =>
+    () => {
+      props.finishRound()
+    }
   if (props.allLocationsQuery.loading || props.allUsersQuery.loading) {
     console.log('loading')
     return <div>loading...</div>

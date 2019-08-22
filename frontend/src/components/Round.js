@@ -16,19 +16,20 @@ const Round = (props) => {
     console.log('no round chosen')
     return null
   }
-  if (props.result.loading) {
+  if (props.allPointsQuery.loading) {
     console.log('loading')
     return <div>loading...</div>
   }
-  if (props.result.error) {
-    console.log('error', props.result.error)
+  if (props.allPointsQuery.error) {
+    console.log('error', props.allPointsQuery.error)
     return <div>error...</div>
   }
-  console.log('all points', props.result.data.allPoints)
+  console.log('all points', props.allPointsQuery.data.allPoints)
   console.log('players ', props.round.users)
   const players = props.round.users
   const trackIndex = props.trackIndex
-  const allPoints = props.result.data.allPoints
+  const allPoints = props.allPointsQuery.data.allPoints
+  const round = props.round
   let order = players.slice()
   const maxTrackIndex = maxValue(allPoints.map(play => play.trackIndex))
   if (trackIndex === -1) {
@@ -39,7 +40,7 @@ const Round = (props) => {
     props.deleteLastTrack()
   }
   const handleRoundFinishClick = () => {
-    console.log('not implemented yet')
+    props.finishRound()
   }
   const handleTrackIndexChangeClick = (index) =>
     () => {
@@ -82,9 +83,14 @@ const Round = (props) => {
   if (maxTrackIndex + 1 === trackIndex) {
     props.addNewTrack()
   }
+  const trackNumbers = []
+  for (let i = 0; i < maxTrackIndex + 1; i++) {
+    trackNumbers.push(<th key={i}>{i + 1}</th>)
+  }
   return (
     <div className="App">
       <div>
+        <h3>{round.location.name}</h3>
         <h3>
           <button text='-' onClick={handleTrackIndexChangeClick(trackIndex - 1)}>-</button>
           Track {trackIndex + 1}
@@ -92,7 +98,13 @@ const Round = (props) => {
         </h3>
         <table>
           <tbody>
-            <tr><th>order</th><th>player</th></tr>
+            <tr>
+              <th>order</th><th>player</th>
+              {
+                trackNumbers
+              }
+
+            </tr>
             {players.map(player => {
               const playerPlays = allPoints.filter(point => point.user.id === player.id)
               if (playerPlays) {

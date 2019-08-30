@@ -152,7 +152,7 @@ const resolvers = {
         username: user.username,
         id: user._id,
       }
-      return { value: jwt.sign(userForToken, JWT_SECRET) }
+      return { token: jwt.sign(userForToken, JWT_SECRET), username: user.username }
     },
     addUser: async (root, args) => {
       console.log('create user', args)

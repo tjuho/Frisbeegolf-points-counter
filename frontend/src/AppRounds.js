@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useApolloClient } from 'react-apollo-hooks'
-import { Container } from 'semantic-ui-react'
+import { Container, Menu, Router } from 'semantic-ui-react'
 import Round from './components/Round'
 import AddRound from './components/AddRound'
 import Rounds from './components/Rounds'
+import LoginForm from './components/LoginForm'
 import Friends from './components/Friends'
 import Me from './components/Me'
 import {
@@ -29,7 +30,48 @@ function Appql() {
   const [currentLocation, setCurrentLocation] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null)
   const [trackIndex, setTrackIndex] = useState(0)
+  const [token, setToken] = useState(null)
+  const [username, setUsername] = useState(null)
+  const [page, setPage] = useState("main")
   const client = useApolloClient()
+
+  useEffect(() => {
+    //setToken(localStorage.getItem('token'))
+    const username = localStorage.getItem('username')
+    const token = localStorage.getItem('token')
+    console.log('restore logged user', username, token)
+    setToken(token)
+    setUsername(username)
+  }, [])
+
+  const doLogin = async (username, password) => {
+    const response = await loginMutation({
+      variables: {
+        username,
+        password
+      }
+    })
+    const token = response.data.login.token
+    const tusername = response.data.login.username
+    console.log('login token and username', token, tusername)
+    if (token) {
+      //localStorage.setItem('token', token)
+      setToken(token)
+      setUsername(username)
+      localStorage.setItem('username', tusername)
+      localStorage.setItem('token', token)
+      setPage('main')
+      client.resetStore()
+    }
+  }
+
+  const doLogout = () => {
+    console.log('logout')
+    setToken(null)
+    setUsername(null)
+    localStorage.clear()
+    client.resetStore()
+  }
 
   const handleError = (error) => {
     console.log('error', error)
@@ -171,6 +213,9 @@ function Appql() {
       })
     }
   })
+  const loginMutation = useMutation(LOGIN, {
+    onError: handleError
+  })
   const addNewTrack = async () => {
     //console.log('add new track to round', roundId)
     //try {
@@ -279,11 +324,31 @@ function Appql() {
     setCurrentRoundId(null)
     setCurrentPlayers([])
     setCurrentLocation(null)
+    setPage('main')
   }
   return (
-    <div>
+    <Container>
+      {token &&
+        <div className="ui secondary menu">
+          <div className="item" onClick={() => { setPage('main'); console.log('main') }}>main</div>
+          {currentRoundId ?
+            <div className="item" onClick={() => { setPage('round'); console.log('continue round') }}>continue round</div>
+            : <div className="item" onClick={() => { setPage('round'); console.log('new round') }}>new round</div>
+          }
+          <div className="item">{username} logged in</div>
+          <div className="item" onClick={() => { setPage(null); doLogout() }}>logout</div>
+
+        </div>
+      }
       {errorMessage && <div>errorMessage</div>}
-      {!currentRoundId && <AddRound
+      {
+        !token &&
+        <LoginForm
+          doLogin={doLogin}
+          show={true}
+          handleError={handleError} />
+      }
+      {token && !currentRoundId && <AddRound
         allLocationsQuery={allLocationsQuery}
         allUsersQuery={allUsersQuery}
         handleLocationClick={handleLocationClick}
@@ -291,14 +356,14 @@ function Appql() {
         currentLocation={currentLocation}
         currentUsers={currentUsers}
         startNewRound={startNewRound}
-        show={true}
+        show={page === 'round'}
       />}
-      {!currentRoundId && <Rounds
+      {token && !currentRoundId && <Rounds
         result={allRoundsQuery}
         setRound={setNewRound}
-        show={true}
+        show={page === 'main'}
       />}
-      {currentRoundId && <Round
+      {token && currentRoundId && <Round
         allPointsQuery={allPointsQuery}
         round={currentRound}
         addNewTrack={addNewTrack}
@@ -307,8 +372,13 @@ function Appql() {
         changeTrack={changeTrack}
         trackIndex={trackIndex}
         finishRound={finishRound}
+        show={page === 'round'}
       />}
-    </div>
+      <div>
+        <br />
+        <em>Frisbeegolf app, Juho Taipale 2019</em>
+      </div>
+    </Container>
   )
 
 }

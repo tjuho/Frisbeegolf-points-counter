@@ -11,6 +11,9 @@ const maxValue = (arr) => {
 }
 
 const Round = (props) => {
+  if (!props.show) {
+    return null
+  }
   console.log('round', props.round)
   if (!props.round) {
     console.log('no round chosen')
@@ -96,15 +99,18 @@ const Round = (props) => {
           Track {trackIndex + 1}
           <button text='+' onClick={handleTrackIndexChangeClick(trackIndex + 1)}>+</button>
         </h3>
-        <table>
-          <tbody>
+        <table className="ui celled table">
+          <thead>
             <tr>
               <th>order</th><th>player</th>
               {
                 trackNumbers
               }
-
+              <th>total</th>
             </tr>
+          </thead>
+          <tbody>
+
             {players.map(player => {
               const playerPlays = allPoints.filter(point => point.user.id === player.id)
               if (playerPlays) {
@@ -118,17 +124,18 @@ const Round = (props) => {
                     {
                       playerPlays.map(play => {
                         if (play.trackIndex === trackIndex) {
-                          return (<td key={play.trackIndex + player.id}>
-                            <button onClick={handlePointChangeClick(play.points - 1, play.user)}>-</button>
+                          return (<td key={play.trackIndex + player.id}><b>
+                            <button className="ui button" onClick={handlePointChangeClick(play.points - 1, play.user)}>-</button>
                             {play.points}
-                            <button onClick={handlePointChangeClick(play.points + 1, play.user)}>+</button>
+                            <button className="ui button" onClick={handlePointChangeClick(play.points + 1, play.user)}>+</button>
+                          </b>
                           </td>)
                         } else {
                           return (<td key={play.trackIndex + player.id}>{play.points}</td>)
                         }
                       })
                     }
-                    <td>tot:{total}</td>
+                    <td>{total}</td>
                   </tr>
                 )
               } else return (
@@ -139,10 +146,10 @@ const Round = (props) => {
         </table>
       </div>
       <div>
-        <button text='delete last track' onClick={handleDeleteLastTrackClick}>delete last track</button>
+        <button className="ui button" text='delete last track' onClick={handleDeleteLastTrackClick}>delete last track</button>
       </div>
       <div>
-        <button text='finish round' onClick={handleRoundFinishClick}>finnish round</button>
+        <button className="ui button" text='finish round' onClick={handleRoundFinishClick}>finnish round</button>
       </div>
       {false && <div>round is finnished</div>}
     </div>

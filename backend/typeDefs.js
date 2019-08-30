@@ -8,7 +8,8 @@ const typeDefs = gql`
       id: ID!
     }
     type Token {
-      value: String!
+      token: String!
+      username: String!
     }
     type Location {
       name: String!

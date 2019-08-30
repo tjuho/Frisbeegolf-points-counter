@@ -16,7 +16,11 @@ const typeDefs = new mongoose.Schema({
   friends: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
-  }]
+  }],
+  admin: {
+    type: Boolean,
+    default: false
+  }
 })
 
 ObjectId.prototype.valueOf = function () {

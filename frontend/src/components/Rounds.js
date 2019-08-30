@@ -24,11 +24,13 @@ const Rounds = (props) => {
   }
   return (
     <div>
-      <table>
-        <tbody>
+      <table className="ui celled table">
+        <thead>
           <tr key='header'>
             <th>location</th><th>date</th><th colSpan="99">players</th>
           </tr>
+        </thead>
+        <tbody>
           {rounds.map(round => {
             const d = new Date(round.date)
             const dateString = d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds()

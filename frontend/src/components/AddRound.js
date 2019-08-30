@@ -31,11 +31,13 @@ const AddRound = (props) => {
       <div>
         <h3>Select location</h3>
         <div>
-          <table>
-            <tbody>
+          <table className="ui celled table">
+            <thead>
               <tr key='header'>
                 <th>locations</th>
               </tr>
+            </thead>
+            <tbody>
               {allLocations.map(location =>
                 <tr key={location.id}>
                   <td onClick={props.handleLocationClick(location)}>{location.name}</td>
@@ -54,11 +56,13 @@ const AddRound = (props) => {
         {currentLocation.name}
       </div>
       <div>
-        <table>
-          <tbody>
+        <table className="ui celled table">
+          <thead>
             <tr key='header'>
               <th>selected players</th>
             </tr>
+          </thead>
+          <tbody>
             {currentUsers.map(user =>
               <tr key={user.id}>
                 <td onClick={props.handleUserClick(user)}>{user.username}</td>
@@ -76,11 +80,13 @@ const AddRound = (props) => {
         </div>
       }
       <div>
-        <table>
-          <tbody>
-            <tr key='header'>
+        <table className="ui celled table">
+          <thead>
+            <tr>
               <th>all players</th>
             </tr>
+          </thead>
+          <tbody>
             {allUsers.map(user =>
               <tr key={user.id}>
                 <td onClick={props.handleUserClick(user)}>{user.username}</td>

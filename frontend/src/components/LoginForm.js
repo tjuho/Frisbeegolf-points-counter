@@ -8,17 +8,7 @@ const LoginForm = (props) => {
   }
   const login = async (event) => {
     event.preventDefault()
-    try {
-      const response = await props.login({
-        variables: { username, password }
-      })
-      const token = response.data.login.value
-      if (token) {
-        props.doLogin(token)
-      }
-    } catch (error) {
-      props.handleError(error)
-    }
+    props.doLogin(username, password)
   }
   const onPasswordChange = (event) => {
     setPassword(event.target.value)
@@ -29,16 +19,24 @@ const LoginForm = (props) => {
   return (
     <div className='login'>
       <h2>Login to application</h2>
-      <form onSubmit={login}>
-        username:
+      <form onSubmit={login} className="ui form">
+        <div className="field">
+          <label>Username</label>
           <input id='username'
-          value={username}
-          onChange={onUsernameChange} />
-        password:
+            type="text"
+            placeholder="username"
+            value={username}
+            onChange={onUsernameChange} />
+        </div>
+        <div className="field">
+          <label>Password</label>
           <input id='password'
-          value={password}
-          onChange={onPasswordChange} />
-        <button type="submit">
+            type="password"
+            placeholder="password"
+            value={password}
+            onChange={onPasswordChange} />
+        </div>
+        <button className="ui button" type="submit">
           login
         </button>
       </form>

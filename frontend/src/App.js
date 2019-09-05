@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react'
-import LoginForm from './components/LoginForm'
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useApolloClient } from 'react-apollo-hooks'
-import { Subscription } from 'react-apollo'
-import AddLocation from './components/AddLocation';
-import AddRound from './components/AddRound'
-import Locations from './components/Locations';
-import Rounds from './components/Rounds'
+import { Container, Menu, Router } from 'semantic-ui-react'
 import Round from './components/Round'
+import AddRound from './components/AddRound'
+import Rounds from './components/Rounds'
+import LoginForm from './components/LoginForm'
 import Friends from './components/Friends'
 import Me from './components/Me'
 import {
@@ -23,26 +21,57 @@ import {
   DELETE_LAST_TRACK
 } from './querys'
 
-const App = () => {
-  let arr = ['foo', 'bar', 'riii', 'foor']
-  arr.splice(2, 1)
-  console.log('index 1 remove', arr)
-  const client = useApolloClient()
 
-  const [page, setPage] = useState('main')
-  const [token, setToken] = useState(null)
-  const [users, setUsers] = useState([])
-  const [location, setLocation] = useState(null)
-  const [round, setRound] = useState(null)
-  const [playNumber, setPlayNumber] = useState(0)
-  const [pointChanges, setPointChanges] = useState([])
-  const [players, setPlayers] = useState([])
-  const [roundId, setRoundId] = useState(null)
-  //  const [currentPlayers, setCurrentPlayers] = useState(["5d18f79935fc7623c728bed7", "5d19bb0b462f0454243492d9"])
-  const [currentPlayers, setCurrentPlayers] = useState([])
+function App() {
+  const [currentRoundId, setCurrentRoundId] = useState(null)
+  const [currentRound, setCurrentRound] = useState(null)
+  //  const [currentUsers, setCurrentPlayers] = useState(["5d18f79935fc7623c728bed7", "5d19bb0b462f0454243492d9"])
+  const [currentUsers, setCurrentPlayers] = useState([])
+  const [currentLocation, setCurrentLocation] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null)
   const [trackIndex, setTrackIndex] = useState(0)
-  const [finished, setFinished] = useState(false)
+  const [token, setToken] = useState(null)
+  const [username, setUsername] = useState(null)
+  const [page, setPage] = useState("main")
+  const client = useApolloClient()
+
+  useEffect(() => {
+    //setToken(localStorage.getItem('token'))
+    const username = localStorage.getItem('username')
+    const token = localStorage.getItem('token')
+    console.log('restore logged user', username, token)
+    setToken(token)
+    setUsername(username)
+  }, [])
+
+  const doLogin = async (username, password) => {
+    const response = await loginMutation({
+      variables: {
+        username,
+        password
+      }
+    })
+    const token = response.data.login.token
+    const tusername = response.data.login.username
+    console.log('login token and username', token, tusername)
+    if (token) {
+      //localStorage.setItem('token', token)
+      setToken(token)
+      setUsername(username)
+      localStorage.setItem('username', tusername)
+      localStorage.setItem('token', token)
+      setPage('main')
+      client.resetStore()
+    }
+  }
+
+  const doLogout = () => {
+    console.log('logout')
+    setToken(null)
+    setUsername(null)
+    localStorage.clear()
+    client.resetStore()
+  }
 
   const handleError = (error) => {
     console.log('error', error)
@@ -62,18 +91,11 @@ const App = () => {
       }
     }
   }
-  const allUsersQuery = useQuery(ALL_USERS, {
-    skip: currentPlayers && currentPlayers.length > 0
-  })
+  /*
   if (!allUsersQuery.loading && !allUsersQuery.error && allUsersQuery.data) {
     setCurrentPlayers(allUsersQuery.data.allUsers)
   }
-  const allPointsQuery = useQuery(ALL_POINTS, {
-    skip: !token || !roundId,
-    variables: {
-      roundId
-    },
-  })
+  */
   const addPointMutation = useMutation(ADD_POINT, {
     onError: handleError,
     update: (store, response) => {
@@ -81,7 +103,7 @@ const App = () => {
       let dataInStore = store.readQuery({
         query: ALL_POINTS,
         variables: {
-          roundId
+          roundId: currentRoundId
         },
       })
       console.log('data in store before point update', dataInStore.allPoints)
@@ -92,7 +114,7 @@ const App = () => {
       client.writeQuery({
         query: ALL_POINTS,
         variables: {
-          roundId
+          roundId: currentRoundId
         },
         data: { allPoints: temp }
       })
@@ -108,7 +130,7 @@ const App = () => {
         const dataInStore = store.readQuery({
           query: ALL_POINTS,
           variables: {
-            roundId
+            roundId: currentRoundId
           },
         })
         console.log('points before deletion', dataInStore.allPoints)
@@ -117,7 +139,7 @@ const App = () => {
         client.writeQuery({
           query: ALL_POINTS,
           variables: {
-            roundId
+            roundId: currentRoundId
           },
           data: { allPoints: temp }
         })
@@ -127,7 +149,7 @@ const App = () => {
         const dataInStoreAfter = store.readQuery({
           query: ALL_POINTS,
           variables: {
-            roundId
+            roundId: currentRoundId
           },
         })
         console.log('data in store after deletion', dataInStoreAfter.allPoints, 'track index now', trackIndex)
@@ -141,7 +163,7 @@ const App = () => {
       let dataInStore = store.readQuery({
         query: ALL_POINTS,
         variables: {
-          roundId
+          roundId: currentRoundId
         },
       })
       console.log('data in store before new track push', dataInStore.allPoints)
@@ -157,7 +179,7 @@ const App = () => {
         client.writeQuery({
           query: ALL_POINTS,
           variables: {
-            roundId
+            roundId: currentRoundId
           },
           data: { allPoints: temp }
         })
@@ -166,19 +188,40 @@ const App = () => {
         dataInStore = store.readQuery({
           query: ALL_POINTS,
           variables: {
-            roundId
+            roundId: currentRoundId
           },
         })
         console.log('data in store after new track push', dataInStore)
       }
     }
   })
+  const addRoundMutation = useMutation(ADD_ROUND, {
+    onError: handleError,
+    update: (store, response) => {
+      console.log('add round response', response)
+      let dataInStore = store.readQuery({
+        query: ALL_ROUNDS
+      })
+      console.log('data in store before round update', dataInStore.allRounds)
+      const addedRound = response.data.addRound
+      console.log('added round', addedRound)
+      const temp = dataInStore.allRounds.filter(round => round.id !== addedRound.id).concat(addedRound)
+      console.log('store after', temp)
+      client.writeQuery({
+        query: ALL_ROUNDS,
+        data: { allRounds: temp }
+      })
+    }
+  })
+  const loginMutation = useMutation(LOGIN, {
+    onError: handleError
+  })
   const addNewTrack = async () => {
     //console.log('add new track to round', roundId)
     //try {
     let response = await addNewTrackMutation({
       variables: {
-        roundId: roundId
+        roundId: currentRoundId
       }
     })
     const points = response.data
@@ -193,7 +236,7 @@ const App = () => {
     try {
       const response = await deleteLastTrackMutation({
         variables: {
-          roundId: roundId
+          roundId: currentRoundId
         }
       })
       console.log('response', response.data)
@@ -209,7 +252,7 @@ const App = () => {
           points: points,
           trackIndex: trackIndex,
           userId: userId,
-          roundId: roundId
+          roundId: currentRoundId
         }
       })
       //console.log('response', response.data)
@@ -221,206 +264,123 @@ const App = () => {
   const changeTrack = (index) => {
     setTrackIndex(index)
   }
-  console.log('users', users)
-  console.log('location', location)
-  useEffect(() => {
-    setToken(localStorage.getItem('token'))
-  }, [])
-
-  const handlePointsChange = (player, newPoints) =>
-    () => {
-      let temp = []
-      for (let i = 0; i < players.length; i++) {
-        temp[i] = pointChanges[i]
-        if (player === players[i]) {
-          temp[i] = newPoints
-        }
-      }
-      setPointChanges(temp)
-    }
-
-
-  const includedIn = (set, object) =>
-    set.map(p => p.id).includes(object.id)
-
-  const doLogin = (token) => {
-    console.log('login', token)
-    setToken(token)
-    localStorage.setItem('token', token)
-    setPage('main')
-    client.resetStore()
+  const setNewRound = (round) => {
+    console.log('round', round)
+    setCurrentRound(round)
+    setCurrentRoundId(round.id)
+    setTrackIndex(-1)
   }
-
-  const logout = () => {
-    console.log('logout')
-    setToken(null)
-    localStorage.clear()
-    client.resetStore()
-  }
-
-  const onUserClicked = (user) =>
-    () => {
-      const idx = users.indexOf(user)
-      console.log('index', idx)
-      if (idx > -1) {
-        setUsers(users.filter((_, index) => index !== idx))
-      } else {
-        setUsers(users.concat(user))
-      }
-    }
-
-  const onLocationClicked = (newLocation) =>
-    () => {
-      if (location === newLocation) {
-        setLocation(null)
-      } else {
-        setLocation(newLocation)
-      }
-    }
-
-  const startNewRound = () => {
-    setPage('round with location and users', location, users)
-  }
-
-  const loginMutation = useMutation(LOGIN, {
-    onError: handleError
+  const allLocationsQuery = useQuery(ALL_LOCATIONS)
+  const allUsersQuery = useQuery(ALL_USERS, {
+    skip: false
   })
-
-  const allLocationsQuery = useQuery(ALL_LOCATIONS, {
-    skip: !token && page !== 'main'
-  })
-
-  const allFriendsQuery = useQuery(ALL_FRIENDS, {
-    skip: !token && page !== 'main'
+  const allPointsQuery = useQuery(ALL_POINTS, {
+    skip: !currentRoundId,
+    variables: {
+      roundId: currentRoundId
+    },
   })
 
   const allRoundsQuery = useQuery(ALL_ROUNDS, {
-    skip: !token && page !== 'main'
+    skip: false
   })
-
-
-  const addLocationMutation = useMutation(ADD_LOCATION, {
-    onError: handleError,
-    update: (store, response) => {
-      const dataInStore = store.readQuery({ query: ALL_LOCATIONS })
-      const friends = store.readQuery({ query: ALL_FRIENDS })
-      console.log('firends store', friends)
-      const addedLocation = response.data.addLocation
-      console.log('addedLocation', addedLocation)
-      console.log('data in store all locations', dataInStore.allLocations)
-      if (!includedIn(dataInStore.allLocations, addedLocation)) {
-        dataInStore.allLocations.push(addedLocation)
-        client.writeQuery({
-          query: ALL_LOCATIONS,
-          data: dataInStore
-        })
+  const handleLocationClick = (location) =>
+    () => {
+      console.log('location clicked', location)
+      if (location === currentLocation) {
+        setCurrentLocation(null)
+      } else {
+        setCurrentLocation(location)
       }
     }
-  })
-
-  const addRoundMutation = useMutation(ADD_ROUND, {
-    onError: handleError,
-    update: (store, response) => {
-      const dataInStore = store.readQuery({ query: ALL_ROUNDS })
-      const addedRound = response.data.addRound
-      if (!includedIn(dataInStore.allRounds, addedRound)) {
-        dataInStore.allRounds.push(addedRound)
-        client.writeQuery({
-          query: ALL_ROUNDS,
-          data: dataInStore
-        })
+  const handleUserClick = (user) =>
+    () => {
+      console.log('user clicked', user)
+      if (currentUsers.includes(user)) {
+        setCurrentPlayers(currentUsers.filter(player => player !== user))
+      } else {
+        setCurrentPlayers(currentUsers.concat(user))
       }
     }
-  })
-
-  return (
-    <div>
-      <div>
-        {!token && <button onClick={() => setPage('login')}>login</button>}
-        {token && <button onClick={() => setPage('main')}>main page</button>}
-        {token && <button onClick={() => {
-          setPage('new round')
-          setUsers([])
-          setLocation(null)
-        }}>new round</button>}
-        {token && <button onClick={() => { logout() }}>logout</button>}
-      </div>
+  const startNewRound = async () => {
+    console.log('start new round', currentLocation.name, currentUsers.map(user => user.username))
+    const response = await addRoundMutation(
       {
-        errorMessage &&
-        <div style={{ color: 'red' }}>
-          {errorMessage}
+        variables: {
+          userIds: currentUsers.map(user => user.id),
+          locationId: currentLocation.id
+        }
+      }
+    )
+    console.log('response', response)
+    setCurrentLocation(null)
+    setCurrentPlayers([])
+    setCurrentRound(response.data.addRound)
+    setCurrentRoundId(response.data.addRound.id)
+  }
+  const finishRound = () => {
+    console.log('finish round')
+    setCurrentRound(null)
+    setCurrentRoundId(null)
+    setCurrentPlayers([])
+    setCurrentLocation(null)
+    setPage('main')
+  }
+  return (
+    <Container>
+      {token &&
+        <div className="ui secondary menu">
+          <div className="item" onClick={() => { setPage('main'); console.log('main') }}>main</div>
+          {currentRoundId ?
+            <div className="item" onClick={() => { setPage('round'); console.log('continue round') }}>continue round</div>
+            : <div className="item" onClick={() => { setPage('round'); console.log('new round') }}>new round</div>
+          }
+          <div className="item">{username} logged in</div>
+          <div className="item" onClick={() => { setPage(null); doLogout() }}>logout</div>
+
         </div>
       }
+      {errorMessage && <div>errorMessage</div>}
       {
         !token &&
-        <LoginForm login={loginMutation}
-          token={token}
+        <LoginForm
           doLogin={doLogin}
-          handleError={handleError}
-          show={page === 'login'} />
-      }
-      {
-        token &&
-        <Rounds
-          result={allRoundsQuery}
-          show={page === 'main' || page === 'rounds'} />
-      }
-      {
-        token &&
-        <AddLocation
-          addLocation={addLocationMutation}
-          show={page === 'main'}
+          show={true}
           handleError={handleError} />
       }
-      {
-        token &&
-        <Locations
-          result={allLocationsQuery}
-          show={page === 'main' || page === 'new round'}
-          onLocationClicked={onLocationClicked} />
-      }
-      {
-        token &&
-        <Me
-          result={allFriendsQuery}
-          show={page === 'main' || page === 'new round'}
-          onUserClicked={onUserClicked} />
-      }
-      {
-        token &&
-        <Friends
-          result={allFriendsQuery}
-          show={page === 'main' || page === 'new round'}
-          onFriendClicked={onUserClicked} />
-      }
-      {
-        token &&
-        <AddRound
-          startNewRound={startNewRound}
-          location={location}
-          users={users}
-          onLocationClicked={onLocationClicked}
-          onUserClicked={onUserClicked}
-          show={page === 'new round'}
-        />
-      }
-      {
-        token && currentPlayers.length > 0 && round &&
-        <Round
-          result={allPointsQuery}
-          addNewTrack={addNewTrack}
-          updatePoint={updatePoint}
-          deleteLastTrack={deleteLastTrack}
-          changeTrack={changeTrack}
-          players={currentPlayers}
-          trackIndex={trackIndex}
-        />
-      }
-      {
-
-      }
-    </div >
+      {token && !currentRoundId && <AddRound
+        allLocationsQuery={allLocationsQuery}
+        allUsersQuery={allUsersQuery}
+        handleLocationClick={handleLocationClick}
+        handleUserClick={handleUserClick}
+        currentLocation={currentLocation}
+        currentUsers={currentUsers}
+        startNewRound={startNewRound}
+        show={page === 'round'}
+      />}
+      {token && <Rounds
+        result={allRoundsQuery}
+        setRound={setNewRound}
+        show={page === 'main'}
+      />}
+      {token && currentRoundId && <Round
+        allPointsQuery={allPointsQuery}
+        round={currentRound}
+        addNewTrack={addNewTrack}
+        updatePoint={updatePoint}
+        deleteLastTrack={deleteLastTrack}
+        changeTrack={changeTrack}
+        trackIndex={trackIndex}
+        finishRound={finishRound}
+        show={page === 'round'}
+      />}
+      <div>
+        <br />
+        <em>Frisbeegolf app, Juho Taipale 2019</em>
+      </div>
+    </Container>
   )
+
 }
 
 export default App;

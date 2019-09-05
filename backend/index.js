@@ -1,5 +1,8 @@
-const { ApolloServer } = require('apollo-server')
-const uuid = require('uuid/v1')
+const http = require('http')
+const { ApolloServer } = require('apollo-server-express')
+const express = require('express')
+const app = express()
+const path = require('path');
 const mongoose = require('mongoose')
 const resolvers = require('./resolvers')
 const typeDefs = require('./typeDefs')
@@ -7,6 +10,7 @@ const jwt = require('jsonwebtoken')
 const config = require('./utils/config')
 const User = require('./models/User')
 const JWT_SECRET = config.jwtSecret
+const PORT = config.port
 console.log('mongo url', config.mongoUrl)
 mongoose.set('useFindAndModify', false)
 mongoose.connect(config.mongoUrl, { useNewUrlParser: true })
@@ -32,7 +36,27 @@ const server = new ApolloServer({
   }
 })
 
-server.listen().then(({ url, subscriptionsUrl }) => {
-  console.log(`Server ready at ${url}`)
-  console.log(`Subscriptions ready at ${subscriptionsUrl}`)
+app.use(express.static('build'))
+
+app.get('/', (req, res) => {
+  res.sendFile(path.resolve(__dirname, 'build', 'index.html'));
+});
+
+/*
+server.listen({ port: process.env.PORT || 4000 })
+  .then(({ url, subscriptionsUrl }) => {
+    console.log(`Server ready at ${url}`)
+    console.log(`Subscriptions ready at ${subscriptionsUrl}`)
+  })
+*/
+
+server.applyMiddleware({
+  app
+})
+const httpServer = http.createServer(app);
+server.installSubscriptionHandlers(httpServer);
+
+httpServer.listen(PORT, () => {
+  console.log(`🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`)
+  console.log(`🚀 Subscriptions ready at ws://localhost:${PORT}${server.subscriptionsPath}`)
 })

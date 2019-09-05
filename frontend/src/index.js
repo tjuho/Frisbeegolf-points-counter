@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import App from './AppRounds'
+import App from './App'
 
 import { ApolloProvider } from 'react-apollo'
 import { ApolloProvider as ApolloHooksProvider } from 'react-apollo-hooks'
@@ -13,14 +13,18 @@ import { setContext } from 'apollo-link-context'
 import { split } from 'apollo-link'
 import { WebSocketLink } from 'apollo-link-ws'
 import { getMainDefinition } from 'apollo-utilities'
-
+const wshost = window.location.origin.replace(/^http/, 'ws')
+const wsuri = `${wshost}/graphql`
+console.log('websocket uri', wsuri)
 const wsLink = new WebSocketLink({
-  uri: `ws://localhost:4000/graphql`,
+  //  uri: `ws://localhost:4000/graphql`,
+  uri: wsuri,
   options: { reconnect: true }
 })
 
 const httpLink = createHttpLink({
-  uri: 'http://localhost:4000/graphql',
+  //  uri: 'http://localhost:4000/graphql',
+  uri: '/graphql',
 })
 
 const authLink = setContext((_, { headers }) => {

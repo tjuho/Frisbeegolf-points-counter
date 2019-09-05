@@ -18,7 +18,7 @@ const AddRound = (props) => {
     return <div>loading...</div>
   }
   if (props.allLocationsQuery.error || props.allUsersQuery.error) {
-    console.log('error', props.result.error)
+    console.log('errors', props.allUsersQuery.error, props.allLocationsQuery.error)
     return <div>error...</div>
   }
   const allLocations = props.allLocationsQuery.data.allLocations
@@ -63,11 +63,11 @@ const AddRound = (props) => {
             </tr>
           </thead>
           <tbody>
-            {currentUsers.map(user =>
-              <tr key={user.id}>
-                <td onClick={props.handleUserClick(user)}>{user.username}</td>
-              </tr>
-            )}
+            <tr>
+              {currentUsers.map(user =>
+                <td key={user.id} onClick={props.handleUserClick(user)}>{user.username}</td>
+              )}
+            </tr>
           </tbody>
         </table>
       </div>
@@ -75,7 +75,7 @@ const AddRound = (props) => {
         currentUsers.length > 0 && currentLocation &&
         <div>
           <form onSubmit={startNewRound}>
-            <button type='submit'>start</button>
+            <button className="ui button" type='submit'>start</button>
           </form>
         </div>
       }

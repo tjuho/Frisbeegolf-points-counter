@@ -29,7 +29,7 @@ const AddLocation = (props) => {
             onChange={({ target }) => setLocation(target.value)}
           />
         </div>
-        <button type='submit'>add new location</button>
+        <button className="ui button" type='submit'>add new location</button>
       </form>
     </div>
   )

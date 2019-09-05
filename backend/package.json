@@ -14,12 +14,15 @@
   "license": "MIT",
   "dependencies": {
     "apollo-server": "^2.4.8",
+    "apollo-server-express": "^2.9.2",
     "bcrypt": "^3.0.6",
+    "express": "^4.17.1",
     "graphql": "^14.4.2",
+    "http": "0.0.0",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.4.22",
     "mongoose-unique-validator": "^2.0.2",
-    "nodemon": "^1.18.10"
+    "path": "^0.12.7"
   },
   "devDependencies": {
     "apollo-server-testing": "^2.6.6",

@@ -27,13 +27,22 @@ const Round = (props) => {
     console.log('error', props.allPointsQuery.error)
     return <div>error...</div>
   }
-  console.log('all points', props.allPointsQuery.data.allPoints)
-  console.log('players ', props.round.users)
+  const savedState = props.savedState
+  const uploadingPoints = props.uploadingPoints
+  const buttonDisabled = savedState || uploadingPoints
   const players = props.round.users
   const trackIndex = props.trackIndex
   const allPoints = props.allPointsQuery.data.allPoints
   const round = props.round
   let order = players.slice()
+
+  //console.log('all points query', props.allPointsQuery)
+  //console.log('players ', props.round.users)
+
+  if (allPoints.length == 0) {
+    props.addNewTrack()
+    props.changeTrack(0)
+  }
   const maxTrackIndex = maxValue(allPoints.map(play => play.trackIndex))
   if (trackIndex === -1) {
     props.changeTrack(maxTrackIndex)
@@ -45,9 +54,15 @@ const Round = (props) => {
   const handleRoundFinishClick = () => {
     props.finishRound()
   }
+  const handleUploadPointsClick = () => {
+    props.uploadPoints()
+  }
   const handleTrackIndexChangeClick = (index) =>
     () => {
       props.changeTrack(index)
+      if (maxTrackIndex + 1 === index) {
+        props.addNewTrack()
+      }
     }
   const handlePointChangeClick = (points, user) =>
     () => {
@@ -83,21 +98,23 @@ const Round = (props) => {
     return 'err'
   }
 
-  if (maxTrackIndex + 1 === trackIndex) {
-    props.addNewTrack()
-  }
+
   const trackNumbers = []
   for (let i = 0; i < maxTrackIndex + 1; i++) {
     trackNumbers.push(<th key={i}>{i + 1}</th>)
   }
   return (
     <div className="App">
+      {savedState && <div>saved state</div>}
+      {!savedState && <div><strong>unsaved state</strong></div>}
       <div>
         <h3>{round.location.name}</h3>
         <h3>
-          <button text='-' onClick={handleTrackIndexChangeClick(trackIndex - 1)}>-</button>
-          Track {trackIndex + 1}
-          <button text='+' onClick={handleTrackIndexChangeClick(trackIndex + 1)}>+</button>
+          <div className="row">
+            <button text='-' onClick={handleTrackIndexChangeClick(trackIndex - 1)}>-</button>
+            Track {trackIndex + 1}
+            <button text='+' onClick={handleTrackIndexChangeClick(trackIndex + 1)}>+</button>
+          </div>
         </h3>
         <table className="ui celled table">
           <thead>
@@ -124,11 +141,12 @@ const Round = (props) => {
                     {
                       playerPlays.map(play => {
                         if (play.trackIndex === trackIndex) {
-                          return (<td key={play.trackIndex + player.id}><b>
-                            <button className="ui button" onClick={handlePointChangeClick(play.points - 1, play.user)}>-</button>
-                            {play.points}
-                            <button className="ui button" onClick={handlePointChangeClick(play.points + 1, play.user)}>+</button>
-                          </b>
+                          return (<td key={play.trackIndex + player.id}>
+                            <strong>
+                              <button className="ui button" onClick={handlePointChangeClick(play.points - 1, play.user)}>-</button>
+                              {play.points}
+                              <button className="ui button" onClick={handlePointChangeClick(play.points + 1, play.user)}>+</button>
+                            </strong>
                           </td>)
                         } else {
                           return (<td key={play.trackIndex + player.id}>{play.points}</td>)
@@ -145,11 +163,11 @@ const Round = (props) => {
           </tbody>
         </table>
       </div>
-      <div>
+      <br />
+      <div className="row">
         <button className="ui button" text='delete last track' onClick={handleDeleteLastTrackClick}>delete last track</button>
-      </div>
-      <div>
         <button className="ui button" text='finish round' onClick={handleRoundFinishClick}>finnish round</button>
+        <button className="ui button" disabled={buttonDisabled} onClick={handleUploadPointsClick}>upload points</button>}
       </div>
       {false && <div>round is finnished</div>}
     </div>

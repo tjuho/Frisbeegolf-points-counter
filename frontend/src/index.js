@@ -17,14 +17,14 @@ const wshost = window.location.origin.replace(/^http/, 'ws')
 const wsuri = `${wshost}/graphql`
 console.log('websocket uri', wsuri)
 const wsLink = new WebSocketLink({
-  //  uri: `ws://localhost:4000/graphql`,
-  uri: wsuri,
+  uri: `ws://localhost:4000/graphql`,
+  //uri: wsuri,
   options: { reconnect: true }
 })
 
 const httpLink = createHttpLink({
-  //  uri: 'http://localhost:4000/graphql',
-  uri: '/graphql',
+  uri: 'http://localhost:4000/graphql',
+  //uri: '/graphql',
 })
 
 const authLink = setContext((_, { headers }) => {

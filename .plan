@@ -1,0 +1,18 @@
+[frontend]
+login sivu
+main page: voi selata aiempia tuloksia, aloittaa uuden kierroksen, jatkaa kierrosta.
+kierros page: valitaan rata/luodaan uusi, lisätään kaverit ja let's go
+rata page: esitetään radan numero, lasketaan järjestys, merkitään pisteet ja to next rata tai sitten rata merkitään käydyksi. Myös näkymä josta, voi näkee menneiden ratojen tuloksia olisi hyvä.
+
+Jokainen osallistuja voi katsella tuloksiaan omalta sivulta.
+
+[backend]
+normaali login, joka palauttaa tokenin. varmaan joku sähköposti varmistus olisi hyvä jos jaksaa järjestää.
+heittäjät (users)
+heittomestan sijainti
+kisa (pvm, heittopaikka tai alue, heittäjät)
+
+
+
+
+

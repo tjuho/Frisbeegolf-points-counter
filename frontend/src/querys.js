@@ -41,7 +41,7 @@ export const ALL_POINTS = gql`
       roundId: $roundId
     ){
     trackIndex,
-    user{id, username},
+    user{id},
     round{id},
     points,
     id
@@ -112,6 +112,40 @@ export const ADD_POINT = gql`
     ){
       trackIndex,
       user{id, username},
+      round{id},
+      points,
+      id
+    }
+  }
+`
+
+export const ADD_POINTS = gql`
+  mutation addPoints($roundIds: [ID!]!, $userIds: [ID!]!, $trackIndexes:[Int!]!, $points: [Int!]!){
+    addPoints(
+      roundIds: $roundIds,
+      userIds: $userIds,
+      trackIndexes: $trackIndexes,
+      points: $points
+    ){
+      trackIndex,
+      user{id, username},
+      round{id},
+      points,
+      id
+    }
+  }
+`
+export const ADD_CACHED_POINTS = gql`
+  mutation addCachedPoints($roundId: ID!, $pointIds: [ID!]!, $userIds: [ID!]!, $trackIndexes:[Int!]!, $points: [Int!]!){
+    addCachedPoints(
+      roundId: $roundId,
+      pointIds: $pointIds,
+      userIds: $userIds,
+      trackIndexes: $trackIndexes,
+      points: $points
+    ){
+      trackIndex,
+      user{id},
       round{id},
       points,
       id

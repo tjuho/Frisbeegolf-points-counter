@@ -72,6 +72,19 @@ const typeDefs = gql`
         trackIndex: Int!
         points: Int!
       ): Point
+      addPoints(
+        roundIds: [ID!]!
+        userIds: [ID!]!
+        trackIndexes: [ID!]!
+        points: [Int!]!
+      ): [Point]
+      addCachedPoints(
+        roundId: ID!
+        pointIds: [ID!]!
+        userIds: [ID!]!
+        trackIndexes: [Int!]!
+        points: [Int!]!      
+      ): [Point]
       addNewTrack(
         roundId: ID!
       ): [Point]

@@ -18,7 +18,6 @@ const Rounds = (props) => {
     }
   const rounds = props.result.data.allRounds
   rounds.sort((r1, r2) => r2.date - r1.date)
-  console.log('all rounds', rounds)
   if (!rounds) {
     return null
   }

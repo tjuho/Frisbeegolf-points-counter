@@ -4,15 +4,17 @@ const AddRound = (props) => {
   if (!props.show) {
     return null
   }
+  const allLocations = props.allLocationsQuery.data.allLocations
+  const allUsers = props.allUsersQuery.data.allUsers
+  const currentLocation = props.currentLocation
+  const currentPlayers = props.currentPlayers
+
   const startNewRound = (event) => {
-    console.log('start new round with', currentLocation, currentUsers)
+    console.log('start new round with', currentLocation, currentPlayers)
     event.preventDefault()
     props.startNewRound()
   }
-  const finishRoundClicked = () =>
-    () => {
-      props.finishRound()
-    }
+
   if (props.allLocationsQuery.loading || props.allUsersQuery.loading) {
     console.log('loading')
     return <div>loading...</div>
@@ -21,10 +23,6 @@ const AddRound = (props) => {
     console.log('errors', props.allUsersQuery.error, props.allLocationsQuery.error)
     return <div>error...</div>
   }
-  const allLocations = props.allLocationsQuery.data.allLocations
-  const allUsers = props.allUsersQuery.data.allUsers
-  const currentLocation = props.currentLocation
-  const currentUsers = props.currentUsers
   if (!currentLocation) {
     // select location
     return (
@@ -64,7 +62,7 @@ const AddRound = (props) => {
           </thead>
           <tbody>
             <tr>
-              {currentUsers.map(user =>
+              {currentPlayers.map(user =>
                 <td key={user.id} onClick={props.handleUserClick(user)}>{user.username}</td>
               )}
             </tr>
@@ -72,7 +70,7 @@ const AddRound = (props) => {
         </table>
       </div>
       {
-        currentUsers.length > 0 && currentLocation &&
+        currentPlayers.length > 0 && currentLocation &&
         <div>
           <form onSubmit={startNewRound}>
             <button className="ui button" type='submit'>start</button>

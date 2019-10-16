@@ -51,7 +51,7 @@ const resolvers = {
         .find({})
       return locations
     },
-    allRounds: async (root, args, context) => {
+    allRounds: async (root, args, { currentUser }) => {
       if (args.id) {
         let round = await Round
           .findById(args.id)
@@ -63,9 +63,9 @@ const resolvers = {
           throw new UserInputError('Round not found');
         }
       }
-      if (context.currentUser) {
+      if (currentUser) {
         let rounds = await Round
-          .find({ users: context.currentUser })
+          .find({ users: currentUser })
           .populate('users')
           .populate('location')
         return rounds
@@ -129,10 +129,11 @@ const resolvers = {
       }
       return user.friends
     },
-    me: async (root, args, context) => {
-      if (!context.currentUser) {
+    me: async (root, args, { currentUser }) => {
+      if (!currentUser) {
         throw new UserInputError('invalid token');
       }
+
       return await User.findById(context.currentUser._id)
         .populate('friends')
     },
@@ -175,6 +176,9 @@ const resolvers = {
       return user
     },
     addFriend: async (root, args, { currentUser }) => {
+      if (!currentUser) {
+        throw new UserInputError('invalid token');
+      }
       console.log('make friends with', args.username)
       if (!currentUser) {
         throw new AuthenticationError('Invalid authentication token')
@@ -208,7 +212,10 @@ const resolvers = {
       return await friend
         .populate('friends')
     },
-    addLocation: async (root, args) => {
+    addLocation: async (root, args, { currentUser }) => {
+      if (!currentUser) {
+        throw new UserInputError('invalid token');
+      }
       const location = new Location({
         name: args.name
       })
@@ -221,7 +228,10 @@ const resolvers = {
       }
       return location
     },
-    addRound: async (root, args) => {
+    addRound: async (root, args, { currentUser }) => {
+      if (!currentUser) {
+        throw new UserInputError('invalid token');
+      }
       console.log('users', args.userIds, 'location', args.locationId)
       const round = new Round({
         location: args.locationId,
@@ -241,7 +251,10 @@ const resolvers = {
         })
       }
     },
-    addPlay: async (root, args) => {
+    addPlay: async (root, args, { currentUser }) => {
+      if (!currentUser) {
+        throw new UserInputError('invalid token');
+      }
       let play = await Play
         .findOne({
           playNumber: args.playNumber,
@@ -263,7 +276,10 @@ const resolvers = {
       return await play
         .populate('round')
     },
-    addPoint: async (root, args) => {
+    addPoint: async (root, args, { currentUser }) => {
+      if (!currentUser) {
+        throw new UserInputError('invalid token');
+      }
       console.log('add point args', args)
       let point = await Point
         .findOneAndUpdate({
@@ -299,8 +315,132 @@ const resolvers = {
       }
       return point
     },
-    addNewTrack: async (root, args) => {
-      console.log('be roudn id', args.roundId)
+
+    addPoints: async (root, args, { currentUser }) => {
+      if (!currentUser) {
+        throw new UserInputError('invalid token');
+      }
+      console.log('add point args', args)
+      const temp = args.roundIds.length
+      let result = []
+      if (temp !== args.userIds.length
+        || temp !== args.trackIndexes.length
+        || temp !== args.points.length) {
+        throw new UserInputError("array lengths of arguments do not match", {
+          invalidArgs: args
+        })
+      }
+      for (let i = 0; i < temp; i++) {
+        const roundId = args.roundIds[i]
+        const userId = args.userIds[i]
+        const trackIndex = args.trackIndex[i]
+        const point = args.points[i]
+        let newPoint = await Point
+          .findOneAndUpdate({
+            round: roundId,
+            user: userId,
+            trackIndex: trackIndex
+          },
+            {
+              points: point
+            },
+            { new: true })
+          .populate('round')
+          .populate('user')
+        console.log('updated point', newPoint)
+        if (!newPoint) {
+          newPoint = new Point({
+            round: roundId,
+            user: userId,
+            points: point,
+            trackIndex: trackIndex
+          })
+          try {
+            await newPoint
+              .save()
+            await newPoint
+              .populate('round')
+              .populate('user')
+          } catch (error) {
+            throw new UserInputError(error.message, {
+              invalidArgs: args
+            })
+          }
+        }
+        result.push(newPoint)
+      }
+      return result
+    },
+    addCachedPoints: async (root, args, { currentUser }) => {
+      if (!currentUser) {
+        throw new UserInputError('invalid token');
+      }
+      console.log('add point args', args)
+      const roundId = args.roundId
+      const round = await Round.findById(roundId)
+      const userIds = args.userIds
+      const trackIndexes = args.trackIndexes
+      const pointIds = args.pointIds
+      const points = args.points
+      const size = userIds.length
+      let result = []
+      await Point.deleteMany({
+        round
+      })
+      if (size !== trackIndexes.length
+        || size !== points.length) {
+        throw new UserInputError("array lengths of arguments do not match", {
+          invalidArgs: args
+        })
+      }
+      for (let i = 0; i < size; i++) {
+        const userId = userIds[i]
+        const user = await User.findById(userId)
+        const trackIndex = trackIndexes[i]
+        const point = points[i]
+        console.log('check point 1', userId, roundId)
+        const updatedPoint = await Point
+          .findOneAndUpdate({
+            round,
+            user,
+            trackIndex
+          },
+            {
+              points: point
+            },
+            { new: true }).populate('user').populate('round')
+        console.log('check point 2', updatedPoint)
+        if (updatedPoint) {
+          result.push(updatedPoint)
+        } else {
+          const newPoint = new Point({
+            round,
+            user,
+            trackIndex,
+            points: point
+          })
+          console.log('check point 3')
+          try {
+            await newPoint
+              .save()
+            await newPoint
+              .populate('round')
+              .populate('user')
+          } catch (error) {
+            throw new UserInputError(error.message, {
+              invalidArgs: args
+            })
+          }
+          result.push(newPoint)
+        }
+      }
+      console.log('result', result)
+      return result
+    },
+    addNewTrack: async (root, args, { currentUser }) => {
+      if (!currentUser) {
+        throw new UserInputError('invalid token');
+      }
       const round = await Round
         .findById(args.roundId)
         .populate('user')
@@ -308,7 +448,6 @@ const resolvers = {
         .find({ round: round._id })
       let nextIndex = 1 + maxValue(allPoints.map(point => point.trackIndex))
       let points = []
-      console.log('round users', round.users, 'max track index', nextIndex)
       for (let i = 0; i < round.users.length; i++) {
         const user = round.users[i]
         point = new Point({
@@ -318,13 +457,11 @@ const resolvers = {
           trackIndex: nextIndex
         })
         try {
-          console.log('point to save', point)
           await point
             .save()
           await point
             .populate('round')
             .populate('user')
-          console.log('point saved', point)
           points.push(point)
         } catch (error) {
           throw new UserInputError(error.message, {
@@ -341,7 +478,10 @@ const resolvers = {
         .populate('user')
         .populate('round')
     },
-    deleteLastTrack: async (root, args) => {
+    deleteLastTrack: async (root, args, { currentUser }) => {
+      if (!currentUser) {
+        throw new UserInputError('invalid token');
+      }
       let allPoints = await Point
         .find({ round: args.roundId })
       allPoints
@@ -358,7 +498,10 @@ const resolvers = {
       }
       return -1
     },
-    deleteUser: async (root, args, context) => {
+    deleteUser: async (root, args, { currentUser }) => {
+      if (!currentUser) {
+        throw new UserInputError('invalid token');
+      }
       const user = await User.findOne({ username: args.username })
       if (!user) {
         throw new UserInputError('Username not found');

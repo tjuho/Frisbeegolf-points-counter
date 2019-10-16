@@ -7,6 +7,7 @@ import Rounds from './components/Rounds'
 import LoginForm from './components/LoginForm'
 import Friends from './components/Friends'
 import Me from './components/Me'
+import crypto from 'crypto'
 import {
   ALL_FRIENDS,
   ALL_LOCATIONS,
@@ -17,16 +18,20 @@ import {
   ADD_LOCATION,
   ADD_ROUND,
   ADD_POINT,
+  ADD_POINTS,
   ADD_NEW_TRACK,
-  DELETE_LAST_TRACK
+  DELETE_LAST_TRACK,
+  ADD_CACHED_POINTS,
 } from './querys'
 
 
 function App() {
+  const [tempState, setTempState] = useState(null)
+  const [localPointStorage, setLocalPointStorage] = useState([])
   const [currentRoundId, setCurrentRoundId] = useState(null)
   const [currentRound, setCurrentRound] = useState(null)
   //  const [currentUsers, setCurrentPlayers] = useState(["5d18f79935fc7623c728bed7", "5d19bb0b462f0454243492d9"])
-  const [currentUsers, setCurrentPlayers] = useState([])
+  const [currentPlayers, setCurrentPlayers] = useState([])
   const [currentLocation, setCurrentLocation] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null)
   const [trackIndex, setTrackIndex] = useState(0)
@@ -34,6 +39,8 @@ function App() {
   const [username, setUsername] = useState(null)
   const [page, setPage] = useState("main")
   const client = useApolloClient()
+  const [savedState, setSavedState] = useState(true)
+  const [uploadingPointsState, setUploadingPointsState] = useState(false)
 
   useEffect(() => {
     //setToken(localStorage.getItem('token'))
@@ -43,6 +50,10 @@ function App() {
     setToken(token)
     setUsername(username)
   }, [])
+
+  const getRandomId = () => {
+    return crypto.randomBytes(16).toString("hex")
+  }
 
   const doLogin = async (username, password) => {
     const response = await loginMutation({
@@ -96,6 +107,36 @@ function App() {
     setCurrentPlayers(allUsersQuery.data.allUsers)
   }
   */
+
+  const addPointsMutation = useMutation(ADD_POINTS, {
+    onError: handleError,
+    update: (store, response) => {
+      console.log('add points response', response)
+      let dataInStore = store.readQuery({
+        query: ALL_POINTS,
+        variables: {
+          roundId: currentRoundId
+        },
+      })
+      console.log('data in store before points update', dataInStore.allPoints)
+      const addedPoints = response.data.addPoints
+      console.log('added point', addedPoints)
+      const addedIds = addedPoints
+        .filter(point => point.roundId === currentRoundId)
+        .map(addedPoint => addedPoint.id)
+      const temp = dataInStore.allPoints
+        .filter(point => addedIds.indexOf(point.id) < 0)
+        .concat(addedPoints)
+      console.log('store after', temp)
+      client.writeQuery({
+        query: ALL_POINTS,
+        variables: {
+          roundId: currentRoundId
+        },
+        data: { allPoints: temp }
+      })
+    }
+  })
   const addPointMutation = useMutation(ADD_POINT, {
     onError: handleError,
     update: (store, response) => {
@@ -154,6 +195,53 @@ function App() {
         })
         console.log('data in store after deletion', dataInStoreAfter.allPoints, 'track index now', trackIndex)
       }
+    }
+  })
+
+  const addCachedPointsMutation = useMutation(ADD_CACHED_POINTS, {
+    onError: handleError,
+    update: (store, response) => {
+      const serverPoints = response.data.addCachedPoints
+      /*
+      client.writeQuery({
+        query: ALL_POINTS,
+        variables: {
+          roundId: currentRoundId
+        },
+        data: { allPoints: points }
+      })*/
+      let dataInStore = store.readQuery({
+        query: ALL_POINTS,
+        variables: {
+          roundId: currentRoundId
+        },
+      })
+      const localPoints = dataInStore.allPoints
+      setSavedState(true)
+      console.log('local and server lengths', localPoints.length, serverPoints.length)
+      if (serverPoints.length !== localPoints.length) {
+        setSavedState(false)
+
+      } else {
+        serverPoints.forEach(serverPoint => {
+          let foundMatch = false
+          localPoints.forEach(localPoint => {
+            if (serverPoint.round.id === localPoint.round.id
+              && serverPoint.user.id === localPoint.user.id
+              && serverPoint.trackIndex === localPoint.trackIndex
+              && serverPoint.points === localPoint.points) {
+              foundMatch = true
+              console.log('found match')
+              return
+            }
+          })
+          if (!foundMatch) {
+            console.log('set saved state to false')
+            setSavedState(false)
+          }
+        });
+      }
+      console.log('local and server points', localPoints, serverPoints)
     }
   })
 
@@ -216,9 +304,145 @@ function App() {
   const loginMutation = useMutation(LOGIN, {
     onError: handleError
   })
+  const addPointToCache = (roundId, userId, trackIndex, points) => {
+    const originalState = client.readQuery({
+      query: ALL_POINTS,
+      variables: {
+        roundId: roundId
+      }
+    })
+    console.log('original state', originalState.allPoints)
+    const temp = originalState.allPoints.filter(point =>
+      point.user.id === userId && point.trackIndex === trackIndex)
+    console.log('found data from cache', temp.length > 0 ? temp : false)
+    if (temp.length > 0) {
+      const data = temp[0]
+      console.log('new state', originalState.allPoints
+        .filter(point => point.id !== data.id)
+        .concat({
+          ...data,
+          points
+        }))
+      client.writeQuery({
+        query: ALL_POINTS,
+        variables: {
+          roundId: roundId
+        },
+        data: {
+          allPoints: originalState.allPoints
+            .filter(point => point.id !== data.id)
+            .concat({
+              ...data,
+              points
+            })
+        }
+      })
+    } else {
+      const newPoint = {
+        round: { id: roundId, __typename: "Round" },
+        user: { id: userId, __typename: "User" },
+        trackIndex,
+        points,
+        id: getRandomId(),
+        __typename: 'Point'
+      }
+      console.log('add new point', newPoint)
+      client.writeQuery({
+        query: ALL_POINTS,
+        variables: {
+          roundId: roundId
+        },
+        data: {
+          allPoints: originalState.allPoints
+            .concat(newPoint)
+        }
+      })
+    }
+    const mutatedState = client.readQuery({
+      query: ALL_POINTS,
+      variables: {
+        roundId: roundId
+      }
+    })
+    console.log('mutated state', mutatedState.allPoints)
+  }
+  const deleteLastTrackFromCache = (roundId) => {
+    const originalState = client.readQuery({
+      query: ALL_POINTS,
+      variables: {
+        roundId: roundId
+      }
+    })
+    if (originalState.allPoints.length === 0) {
+      return
+    }
+    console.log('original state', originalState.allPoints)
+    const maxTrackIndex = originalState.allPoints
+      .map(point => point.trackIndex)
+      .sort((i1, i2) => i2 - i1)[0]
+    console.log('maxTrackindex', maxTrackIndex)
+    client.writeQuery({
+      query: ALL_POINTS,
+      variables: {
+        roundId: roundId
+      },
+      data: {
+        allPoints: originalState.allPoints.filter(point => point.trackIndex !== maxTrackIndex)
+      }
+    })
+    if (trackIndex >= maxTrackIndex) {
+      setTrackIndex(maxTrackIndex - 1)
+    }
+    const mutatedState = client.readQuery({
+      query: ALL_POINTS,
+      variables: {
+        roundId: roundId
+      }
+    })
+    console.log('mutated state', mutatedState.allPoints)
+  }
+  const uploadPointsFromCacheToServer = async () => {
+
+    const originalState = client.readQuery({
+      query: ALL_POINTS,
+      variables: {
+        roundId: currentRoundId
+      }
+    })
+    if (originalState.allPoints.length === 0) {
+      return
+    }
+    const allPoints = originalState.allPoints
+    console.log('upload points from cache to server', allPoints)
+    try {
+      await setUploadingPointsState(true)
+      //await setSavedState(true)
+      let response = await addCachedPointsMutation({
+        variables: {
+          roundId: currentRoundId,
+          pointIds: allPoints.map(point => point.id.toString()),
+          userIds: allPoints.map(point => point.user.id.toString()),
+          trackIndexes: allPoints.map(point => point.trackIndex),
+          points: allPoints.map(point => point.points)
+        }
+      })
+      setUploadingPointsState(false)
+      console.log('response', response)
+      console.log('server and local state match', savedState)
+    } catch (error) {
+      handleError(error)
+    }
+  }
+
   const addNewTrack = async () => {
-    //console.log('add new track to round', roundId)
+    const currentUsers = currentRound.users
+    console.log('add new track to round and trackindex', currentRound.id, trackIndex, 'for users', currentUsers)
     //try {
+    for (let i = 0; i < currentUsers.length; i++) {
+      addPointToCache(currentRoundId, currentUsers[i].id, trackIndex + 1, 3)
+    }
+    //uploadPoints()
+    return
     let response = await addNewTrackMutation({
       variables: {
         roundId: currentRoundId
@@ -233,6 +457,8 @@ function App() {
   }
   const deleteLastTrack = async () => {
     console.log('delete last track')
+    deleteLastTrackFromCache(currentRoundId)
+    /*
     try {
       const response = await deleteLastTrackMutation({
         variables: {
@@ -242,10 +468,12 @@ function App() {
       console.log('response', response.data)
     } catch (error) {
       handleError(error)
-    }
+    }*/
   }
   const updatePoint = async (points, userId) => {
-    //console.log('add point with points and userId', points, userId)
+    console.log('add point with points and userId', points, 'trackIndex', trackIndex, userId, currentRoundId)
+    addPointToCache(currentRoundId, userId, trackIndex, points)
+    /*
     try {
       const response = await addPointMutation({
         variables: {
@@ -258,7 +486,7 @@ function App() {
       //console.log('response', response.data)
     } catch (error) {
       handleError(error)
-    }
+    }*/
   }
 
   const changeTrack = (index) => {
@@ -296,18 +524,18 @@ function App() {
   const handleUserClick = (user) =>
     () => {
       console.log('user clicked', user)
-      if (currentUsers.includes(user)) {
-        setCurrentPlayers(currentUsers.filter(player => player !== user))
+      if (currentPlayers.includes(user)) {
+        setCurrentPlayers(currentPlayers.filter(player => player !== user))
       } else {
-        setCurrentPlayers(currentUsers.concat(user))
+        setCurrentPlayers(currentPlayers.concat(user))
       }
     }
   const startNewRound = async () => {
-    console.log('start new round', currentLocation.name, currentUsers.map(user => user.username))
+    console.log('start new round', currentLocation.name, currentPlayers.map(user => user.username))
     const response = await addRoundMutation(
       {
         variables: {
-          userIds: currentUsers.map(user => user.id),
+          userIds: currentPlayers.map(user => user.id),
           locationId: currentLocation.id
         }
       }
@@ -326,6 +554,7 @@ function App() {
     setCurrentLocation(null)
     setPage('main')
   }
+
   return (
     <Container>
       {token &&
@@ -354,7 +583,7 @@ function App() {
         handleLocationClick={handleLocationClick}
         handleUserClick={handleUserClick}
         currentLocation={currentLocation}
-        currentUsers={currentUsers}
+        currentPlayers={currentPlayers}
         startNewRound={startNewRound}
         show={page === 'round'}
       />}
@@ -372,7 +601,10 @@ function App() {
         changeTrack={changeTrack}
         trackIndex={trackIndex}
         finishRound={finishRound}
+        uploadPoints={uploadPointsFromCacheToServer}
         show={page === 'round'}
+        savedState={savedState && currentRoundId}
+        uploadingPoints={uploadingPointsState && currentRoundId}
       />}
       <div>
         <br />

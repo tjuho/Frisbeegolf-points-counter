@@ -27,6 +27,7 @@ const Round = (props) => {
     console.log('error', props.allPointsQuery.error)
     return <div>error...</div>
   }
+  console.log('saved state and uploading points state', props.savedState, props.uploadingPoints)
   const savedState = props.savedState
   const uploadingPoints = props.uploadingPoints
   const buttonDisabled = savedState || uploadingPoints
@@ -38,8 +39,9 @@ const Round = (props) => {
 
   //console.log('all points query', props.allPointsQuery)
   //console.log('players ', props.round.users)
-
-  if (allPoints.length == 0) {
+  console.log('all points', allPoints)
+  if (allPoints.length === 0) {
+    console.log('all points length 0')
     props.addNewTrack()
     props.changeTrack(0)
   }
@@ -100,9 +102,17 @@ const Round = (props) => {
 
 
   const trackNumbers = []
+  console.log('max track index', maxTrackIndex)
+  if (maxTrackIndex === 0) {
+    players.forEach(player => {
+
+    })
+  }
   for (let i = 0; i < maxTrackIndex + 1; i++) {
     trackNumbers.push(<th key={i}>{i + 1}</th>)
   }
+  console.log('all points', allPoints)
+  console.log('track numbers th', trackNumbers)
   return (
     <div className="App">
       {savedState && <div>saved state</div>}
@@ -167,7 +177,7 @@ const Round = (props) => {
       <div className="row">
         <button className="ui button" text='delete last track' onClick={handleDeleteLastTrackClick}>delete last track</button>
         <button className="ui button" text='finish round' onClick={handleRoundFinishClick}>finnish round</button>
-        <button className="ui button" disabled={buttonDisabled} onClick={handleUploadPointsClick}>upload points</button>}
+        <button className="ui button" disabled={buttonDisabled} onClick={handleUploadPointsClick}>upload points</button>
       </div>
       {false && <div>round is finnished</div>}
     </div>

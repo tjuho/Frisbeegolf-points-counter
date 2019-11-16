@@ -51,6 +51,7 @@ const typeDefs = gql`
       addUser(
         username: String!
         password: String!
+        admin: Boolean
       ): User
       addFriend(
         username: String!
@@ -61,7 +62,7 @@ const typeDefs = gql`
       addRound(
         locationId: ID!
         userIds: [ID!]!
-      ): Round
+      ): ID
       addPlay(
         roundId: ID!
         playNumber: Int!

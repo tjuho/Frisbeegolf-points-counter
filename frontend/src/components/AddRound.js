@@ -38,7 +38,7 @@ const AddRound = (props) => {
             <tbody>
               {allLocations.map(location =>
                 <tr key={location.id}>
-                  <td onClick={props.handleLocationClick(location)}>{location.name}</td>
+                  <td className='ui button' onClick={props.handleLocationClick(location)}>{location.name}</td>
                 </tr>
               )}
             </tbody>
@@ -63,7 +63,7 @@ const AddRound = (props) => {
           <tbody>
             <tr>
               {currentPlayers.map(user =>
-                <td key={user.id} onClick={props.handleUserClick(user)}>{user.username}</td>
+                <td className='ui button' key={user.id} onClick={props.handleUserClick(user)}>{user.username}</td>
               )}
             </tr>
           </tbody>
@@ -87,7 +87,7 @@ const AddRound = (props) => {
           <tbody>
             {allUsers.map(user =>
               <tr key={user.id}>
-                <td onClick={props.handleUserClick(user)}>{user.username}</td>
+                <td className='ui button' onClick={props.handleUserClick(user)}>{user.username}</td>
               </tr>
             )}
           </tbody>

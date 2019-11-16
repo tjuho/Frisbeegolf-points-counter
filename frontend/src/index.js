@@ -1,7 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import App from './App'
-
 import { ApolloProvider } from 'react-apollo'
 import { ApolloProvider as ApolloHooksProvider } from 'react-apollo-hooks'
 
@@ -14,21 +13,29 @@ import { split } from 'apollo-link'
 import { WebSocketLink } from 'apollo-link-ws'
 import { getMainDefinition } from 'apollo-utilities'
 const wshost = window.location.origin.replace(/^http/, 'ws')
-const wsuri = `${wshost}/graphql`
+let wsuri = `${wshost}/graphql`
+let httpUri = '/graphql'
+if (process.env.NODE_ENV !== 'production') {
+  console.log('development or testing environment')
+  httpUri = 'http://localhost:4000/graphql'
+  wsuri = `ws://localhost:4000/graphql`
+  //httpUri = 'http://frisbeegolfappi.herokuapp.com/graphql'
+  //wsuri = `ws://frisbeegolfappi.herokuapp.com/graphql`
+}
 console.log('websocket uri', wsuri)
+console.log('http uri', httpUri)
+
 const wsLink = new WebSocketLink({
-  uri: `ws://localhost:4000/graphql`,
-  //uri: wsuri,
+  uri: wsuri,
   options: { reconnect: true }
 })
 
 const httpLink = createHttpLink({
-  uri: 'http://localhost:4000/graphql',
-  //uri: '/graphql',
+  uri: httpUri,
 })
 
 const authLink = setContext((_, { headers }) => {
-  const token = localStorage.getItem('loggedToken')
+  const token = localStorage.getItem('token')
   return {
     headers: {
       ...headers,

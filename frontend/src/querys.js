@@ -92,6 +92,15 @@ export const ADD_ROUND = gql`
     }
   }
 `
+export const DELETE_ROUND = gql`
+  mutation removeRound($roundId: ID!){
+    deleteRound(
+      roundId: $roundId
+    ){
+      id
+    }
+  }
+`
 export const ADD_PLAY = gql`
   mutation createPlay($roundId: ID!, $playNumber:Int!){
     addPlay(
@@ -102,39 +111,7 @@ export const ADD_PLAY = gql`
     }
   }
 `
-export const ADD_POINT = gql`
-  mutation addPoint($roundId: ID!, $trackIndex:Int!, $userId: ID!, $points: Int!){
-    addPoint(
-      roundId: $roundId,
-      userId: $userId,
-      trackIndex: $trackIndex,
-      points: $points
-    ){
-      trackIndex,
-      user{id, username},
-      round{id},
-      points,
-      id
-    }
-  }
-`
 
-export const ADD_POINTS = gql`
-  mutation addPoints($roundIds: [ID!]!, $userIds: [ID!]!, $trackIndexes:[Int!]!, $points: [Int!]!){
-    addPoints(
-      roundIds: $roundIds,
-      userIds: $userIds,
-      trackIndexes: $trackIndexes,
-      points: $points
-    ){
-      trackIndex,
-      user{id, username},
-      round{id},
-      points,
-      id
-    }
-  }
-`
 export const ADD_CACHED_POINTS = gql`
   mutation addCachedPoints($roundId: ID!, $pointIds: [ID!]!, $userIds: [ID!]!, $trackIndexes:[Int!]!, $points: [Int!]!){
     addCachedPoints(
@@ -151,26 +128,4 @@ export const ADD_CACHED_POINTS = gql`
       id
     }
   }
-`
-
-export const ADD_NEW_TRACK = gql`
-mutation addNewTrack($roundId: ID!){
-  addNewTrack(
-    roundId: $roundId
-  ){
-    trackIndex,
-    user{id, username},
-    round{id},
-    points,
-    id
-  }
-}
-`
-
-export const DELETE_LAST_TRACK = gql`
-mutation deleteLastTrack($roundId: ID!){
-  deleteLastTrack(
-    roundId: $roundId
-  )
-}
 `

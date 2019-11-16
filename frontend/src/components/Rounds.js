@@ -16,6 +16,11 @@ const Rounds = (props) => {
       console.log('round clicked', round)
       props.setRound(round)
     }
+  const handleDeleteRoundClick = (round) =>
+    () => {
+      console.log('delete round clicked', round)
+      props.deleteRound(round)
+    }
   const rounds = props.result.data.allRounds
   rounds.sort((r1, r2) => r2.date - r1.date)
   if (!rounds) {
@@ -34,11 +39,12 @@ const Rounds = (props) => {
             const d = new Date(round.date)
             const dateString = d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds()
             return (
-              <tr onClick={handleRoundClick(round)} key={round.id}>
-                <td>{round.location.name}</td><td>{dateString}</td>
+              <tr key={round.id}>
+                <td onClick={handleRoundClick(round)}>{round.location.name}</td><td>{dateString}</td>
                 {round.users.map(user =>
                   <td key={user.username}>{user.username}</td>
                 )}
+                <td><button onClick={handleDeleteRoundClick(round)}>delete</button></td>
               </tr>
             )
           }

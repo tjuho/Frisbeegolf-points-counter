@@ -9,6 +9,8 @@ const typeDefs = require('./typeDefs')
 const jwt = require('jsonwebtoken')
 const config = require('./utils/config')
 const User = require('./models/User')
+//const cors = require('cors')
+//app.use(cors())
 const JWT_SECRET = config.jwtSecret
 const PORT = config.port
 console.log('mongo url', config.mongoUrl)

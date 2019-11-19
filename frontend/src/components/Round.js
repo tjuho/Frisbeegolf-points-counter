@@ -1,7 +1,7 @@
 import React from 'react';
 
-const maxValue = (arr) => {
-  let temp = -1
+const maxValue = (arr, def = -1) => {
+  let temp = def
   arr.forEach(element => {
     if (temp < element) {
       temp = element
@@ -14,7 +14,7 @@ const Round = (props) => {
   if (!props.show) {
     return null
   }
-  console.log('round', props.round)
+  //console.log('round', props.round)
   if (!props.round) {
     console.log('no round chosen')
     return null
@@ -27,7 +27,7 @@ const Round = (props) => {
     console.log('error', props.allPointsQuery.error)
     return <div>error...</div>
   }
-  console.log('saved state and uploading points state', props.savedState, props.uploadingPoints)
+  //console.log('saved state and uploading points state', props.savedState, props.uploadingPoints)
   const savedState = props.savedState
   const uploadingPoints = props.uploadingPoints
   const buttonDisabled = savedState || uploadingPoints
@@ -36,19 +36,18 @@ const Round = (props) => {
   const allPoints = props.allPointsQuery.data.allPoints
   const round = props.round
   let order = players.slice()
-
-  //console.log('all points query', props.allPointsQuery)
-  //console.log('players ', props.round.users)
   console.log('all points', allPoints)
-  if (allPoints.length === 0) {
-    console.log('all points length 0')
-    props.addNewTrack()
-    props.changeTrack(0)
-  }
-  const maxTrackIndex = maxValue(allPoints.map(play => play.trackIndex))
-  if (trackIndex === -1) {
+  //console.log('players ', props.round.users)
+
+  const maxTrackIndex = maxValue(allPoints.map(play => play.trackIndex), -1)
+  if (trackIndex === -1 && maxTrackIndex > -1) {
     props.changeTrack(maxTrackIndex)
     return null
+  }
+  if (allPoints.length === 0) {
+    console.log('new round', props.round)
+    props.addNewTrack()
+    props.changeTrack(0)
   }
   const handleDeleteLastTrackClick = () => {
     props.deleteLastTrack()
@@ -61,10 +60,12 @@ const Round = (props) => {
   }
   const handleTrackIndexChangeClick = (index) =>
     () => {
-      props.changeTrack(index)
+      console.log('new index', index, 'max index', maxTrackIndex)
       if (maxTrackIndex + 1 === index) {
+        console.log('add new track')
         props.addNewTrack()
       }
+      props.changeTrack(index)
     }
   const handlePointChangeClick = (points, user) =>
     () => {
@@ -90,7 +91,7 @@ const Round = (props) => {
     }
     return 0
   })
-  console.log('order', order)
+  //console.log('order', order)
   const orderOf = (player) => {
     for (let i = 0; i < order.length; i++) {
       if (player === order[i]) {
@@ -102,17 +103,11 @@ const Round = (props) => {
 
 
   const trackNumbers = []
-  console.log('max track index', maxTrackIndex)
-  if (maxTrackIndex === 0) {
-    players.forEach(player => {
-
-    })
-  }
+  console.log('max track index', maxTrackIndex, 'track index', trackIndex)
   for (let i = 0; i < maxTrackIndex + 1; i++) {
     trackNumbers.push(<th key={i}>{i + 1}</th>)
   }
-  console.log('all points', allPoints)
-  console.log('track numbers th', trackNumbers)
+  console.log('track numbers th', trackNumbers, 'all points', allPoints)
   return (
     <div className="App">
       {savedState && <div>saved state</div>}

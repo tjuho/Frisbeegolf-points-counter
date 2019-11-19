@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useApolloClient } from 'react-apollo-hooks'
 import { Container, Menu, Router } from 'semantic-ui-react'
+import Navigation from './components/Navigation'
 import Round from './components/Round'
 import AddRound from './components/AddRound'
 import Rounds from './components/Rounds'
@@ -174,7 +175,28 @@ const App = (props) => {
   const loginMutation = useMutation(LOGIN, {
     onError: handleError
   })
+  const addNewTrackToCache = () => {
+    const originalState = client.readQuery({
+      query: ALL_POINTS,
+      variables: {
+        roundId: currentRoundId
+      }
+    })
+    const allPoints = originalState.allPoints
+    console.log('all points', allPoints)
+    let max = -1
+    allPoints.forEach(point => {
+      if (point.trackIndex > max) {
+        max = point.trackIndex
+      }
+    })
+    currentRound.users.forEach(player => {
+      addPointToCache(currentRoundId, player.id, max + 1, 3)
+    })
+    //TODO: get max track index and add new track
+  }
   const addPointToCache = (roundId, userId, trackIndex, points) => {
+    console.log('add point with roundId userId, trackindex, points', roundId, userId, trackIndex, points)
     const originalState = client.readQuery({
       query: ALL_POINTS,
       variables: {
@@ -312,10 +334,10 @@ const App = (props) => {
 
   const addNewTrack = async () => {
     const currentUsers = currentRound.users
-    console.log('add new track to round and trackindex', currentRound.id, trackIndex, 'for users', currentUsers)
+    console.log('add new track to round and trackindex', currentRound.id, currentRoundId, 'for users', currentUsers)
     //try {
     for (let i = 0; i < currentUsers.length; i++) {
-      addPointToCache(currentRoundId, currentUsers[i].id, trackIndex + 1, 3)
+      addPointToCache(currentRoundId, currentUsers[i].id, currentRoundId + 1, 3)
     }
   }
 
@@ -381,7 +403,7 @@ const App = (props) => {
     console.log('response', response)
   }
   const startNewRound = async () => {
-    console.log('start new round', currentLocation.name, currentPlayers.map(user => user.username))
+    console.log('start new round', currentLocation.id, currentPlayers.map(user => user.id))
     const response = await addRoundMutation(
       {
         variables: {
@@ -391,8 +413,8 @@ const App = (props) => {
       }
     )
     console.log('response', response)
-    setCurrentLocation(null)
-    setCurrentPlayers([])
+    //setCurrentLocation(null)
+    //setCurrentPlayers([])
     setCurrentRound(response.data.addRound)
     setCurrentRoundId(response.data.addRound.id)
   }
@@ -407,21 +429,15 @@ const App = (props) => {
 
   return (
     <Container>
-      {token &&
-        <div className="ui secondary menu">
-          <div className="item" onClick={() => { setPage('main'); console.log('main') }}>main</div>
-          {currentRoundId ?
-            <div className="item" onClick={() => { setPage('round'); console.log('continue round') }}>continue round</div>
-            : <div className="item" onClick={() => { setPage('round'); console.log('new round') }}>new round</div>
-          }
-          <div className="item">{username} logged in</div>
-          <div className="item" onClick={() => { setPage(null); doLogout() }}>logout</div>
-
-        </div>
+      {token && <Navigation show={true}
+        doLogout={doLogout}
+        setPage={setPage}
+        username={username}
+        currentRoundId={currentRoundId} />
       }
-      {errorMessage && <div>errorMessage</div>}
-      {
-        !token &&
+      {errorMessage && <div>errorMessage</div>
+      }
+      {!token &&
         <LoginForm
           doLogin={doLogin}
           show={true}
@@ -446,7 +462,7 @@ const App = (props) => {
       {token && currentRoundId && <Round
         allPointsQuery={allPointsQuery}
         round={currentRound}
-        addNewTrack={addNewTrack}
+        addNewTrack={addNewTrackToCache}
         updatePoint={updatePoint}
         deleteLastTrack={deleteLastTrack}
         changeTrack={changeTrack}

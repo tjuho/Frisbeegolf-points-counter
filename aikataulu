@@ -11,3 +11,4 @@
 30.8 3h muotoilua semantic uilla
 5.9 8h deployattu herokuun, korjattu bugeja, tyylittelyä yms
 16.10 4h muotoilujen säätämistä ja koodin siistimistä
+19.11 8h ohjelma käyttää nyt cacheta ja käyttäjä voi ladata pisteet serverille. Myös bugien korjausta

@@ -134,7 +134,7 @@ const resolvers = {
         throw new UserInputError('invalid token');
       }
 
-      return await User.findById(context.currentUser._id)
+      return await User.findById(currentUser._id)
         .populate('friends')
     },
   },
@@ -433,22 +433,14 @@ const resolvers = {
     },
     deleteRound: async (root, args, { currentUser }) => {
       console.log('delete round', args.roundId)
-      const round = await Round.findById(args.roundId)
+      const roundId = args.roundId
+      const round = await Round.findById(roundId)
       console.log('found round', round)
       if (!round) {
         throw new UserInputError('Round id not found');
       }
-      const plays = await Play.find({ round: round })
-      const ids = plays.map(play => play.id)
-      console.log('found play ids', ids)
-      console.log('found plays', plays)
-      const points = await Point.find({ playId: { $in: plays.map(play => play.id) } })
-      console.log('found points', points)
-      return round
-      await Point.deleteMany({ playId: { $in: plays.map(play => play.id) } })
-      console.log('deleted points')
-      await Play.deleteMany({ roundId: round.id })
-      const result = await Round.findByIdAndDelete(args.roundId)
+      await Point.deleteMany({ round })
+      const result = await Round.findByIdAndDelete(roundId)
       console.log('delete result', result)
       return result
     },

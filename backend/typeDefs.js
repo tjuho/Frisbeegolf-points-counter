@@ -62,7 +62,7 @@ const typeDefs = gql`
       addRound(
         locationId: ID!
         userIds: [ID!]!
-      ): ID
+      ): Round
       addPlay(
         roundId: ID!
         playNumber: Int!

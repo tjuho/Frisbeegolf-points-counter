@@ -21,12 +21,12 @@ const maxValue = (arr, def = -1) => {
 }
 
 const styles = StyleSheet.create({
-  cell: { padding: 4, alignItems: 'center' },
+  cell: { padding: 3, paddingVertical: 10, alignItems: 'center', justifyContent: 'center' },
   textCell: { flex: 1 },
   HeaderTextCell: { flex: 1 },
   playCell: { flex: 1 },
   selectedPlayCell: {
-    flex: 1, flexDirection: 'row',
+    flexDirection: 'row',
   },
 })
 
@@ -145,11 +145,15 @@ const Round = (props) => {
   const SelectedPlayCell = ({ play }) => (
     //<View style={styles.selectedPlayCell}>
     <View style={styles.selectedPlayCell}>
-      <TouchableOpacity style={{ borderWidth: 1, paddingHorizontal: 5 }} onPress={handlePointChangeClick(play.points - 1, play.user)}>
+      <TouchableOpacity
+        style={{ borderWidth: 1, paddingHorizontal: 5 }}
+        onPress={handlePointChangeClick(play.points - 1, play.user)}>
         <Text>-</Text>
       </TouchableOpacity>
       <Text style={{ paddingHorizontal: 2 }} >{play.points}</Text>
-      <TouchableOpacity style={{ borderWidth: 1, paddingHorizontal: 5 }} onPress={handlePointChangeClick(play.points + 1, play.user)}>
+      <TouchableOpacity
+        style={{ borderWidth: 1, paddingHorizontal: 5 }}
+        onPress={handlePointChangeClick(play.points + 1, play.user)}>
         <Text>+</Text>
       </TouchableOpacity>
     </View>
@@ -207,18 +211,17 @@ const Round = (props) => {
     }
     return ttable
   }
-  const componentTable = createComponentTable()
 
   return (
     <View>
-      <View style={{ flex: 1, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' }}>
+      <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'center' }}>
         <Text style={{ flex: 1 }}>{round.location.name}</Text>
         <TrackIndex style={{ flex: 1 }} />
         {savedState && <Text style={{ flex: 1 }}>saved state</Text>}
         {!savedState && <Text style={{ flex: 1 }}>unsaved state</Text>}
       </View>
-      <View style={{ flexDirection: 'row', flex: 1 }}>
-        {componentTable.map((col, i) => (
+      <View style={{ flexDirection: 'row' }}>
+        {createComponentTable().map((col, i) => (
           <View key={i}>
             {col.map((item, j) => (
               <View key={j} style={styles.cell}>
@@ -228,7 +231,7 @@ const Round = (props) => {
           </View>
         ))}
       </View>
-      <View style={{ flexDirection: 'row', flex: 1 }}>
+      <View style={{ flexDirection: 'row' }}>
         <TouchableOpacity style={{ padding: 10 }} title='delete last track' onPress={handleDeleteLastTrackClick}>
           <Text>delete last track</Text>
         </TouchableOpacity>

@@ -13,6 +13,15 @@ const Navigation = (props) => {
   if (!props.show) {
     return null
   }
+
+  if (props.meQuery.loading) {
+    return <View><Text>loading...</Text></View>
+  }
+  if (props.meQuery.error) {
+    console.log('error', props.meQuery.error)
+    return <View><Text>error...</Text></View>
+  }
+
   const setPage = (page) => {
     props.setPage(page)
   }
@@ -20,7 +29,8 @@ const Navigation = (props) => {
     props.setPage(null)
     props.doLogout()
   }
-  const username = props.username
+  const user = props.meQuery.data.me
+  console.log('user', user)
   const currentRoundId = props.currentRoundId
   return (
     <View style={styles.container}>
@@ -36,7 +46,7 @@ const Navigation = (props) => {
       </View>
       <View style={styles.item}>
 
-        <View><Text>{username} logged in</Text></View>
+        <View><Text>{user.username} {user.admin ? '(admin)' : ''} logged in</Text></View>
       </View>
       <View style={styles.item}>
         <TouchableOpacity onPress={() => { doLogout() }}><Text>logout</Text></TouchableOpacity>

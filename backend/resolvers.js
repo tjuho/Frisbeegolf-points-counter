@@ -133,9 +133,10 @@ const resolvers = {
       if (!currentUser) {
         throw new UserInputError('invalid token');
       }
-
-      return await User.findById(currentUser._id)
+      const user = await User.findById(currentUser._id)
         .populate('friends')
+      console.log('user', user)
+      return user
     },
   },
   Mutation: {
@@ -169,7 +170,7 @@ const resolvers = {
       const user = new User({
         username: args.username,
         passwordHash,
-        admin: args.admin
+        admin: args.admin ? args.admin : false
       })
       try {
         await user.save()
@@ -428,16 +429,21 @@ const resolvers = {
       return await User.findByIdAndDelete(user._id)
     },
     deleteAllRounds: async (root, args, { currentUser }) => {
+      if (!currentUser.admin) {
+        throw new UserInputError('Unauthorized deletion of rounds');
+      }
       await Round.deleteMany({})
       await Point.deleteMany({})
     },
     deleteRound: async (root, args, { currentUser }) => {
-      console.log('delete round', args.roundId)
       const roundId = args.roundId
       const round = await Round.findById(roundId)
-      console.log('found round', round)
       if (!round) {
         throw new UserInputError('Round id not found');
+      }
+      if (round.users.filter(user => user === currentUser).length < 1
+        && !currentUser.admin) {
+        throw new UserInputError('Unauthorized deletion of round');
       }
       await Point.deleteMany({ round })
       const result = await Round.findByIdAndDelete(roundId)

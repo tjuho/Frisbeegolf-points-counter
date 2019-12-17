@@ -17,6 +17,7 @@ import {
   ADD_ROUND,
   DELETE_ROUND,
   ADD_CACHED_POINTS,
+  ME,
 } from '../querys'
 import {
   Image,
@@ -28,14 +29,18 @@ import {
   View,
   AsyncStorage,
 } from 'react-native';
+import {
+  theme,
+} from '../utils/theme'
+
 const styles = StyleSheet.create({
   tableitem: { flex: 1, padding: 5 },
   table: { flex: 1, flexDirection: 'row', alignItems: 'flex-start' },
   tablecolumn: { alignItems: 'flex-start' }
 })
 const ColItem = ({ text }) => (
-  <View style={styles.tableitem}>
-    <Text>{text}</Text>
+  <View style={theme['dark'].container, styles.tableitem}>
+    <Text style={theme['dark'].text}>{text}</Text>
   </View>
 )
 const Col = ({ textArray }) => (
@@ -76,36 +81,6 @@ const createTable = (rows) => {
   return <Table columns={columns} />
 }
 
-const createTable1 = (rows) => {
-  if (rows && rows[0]) {
-    const size = rows[0].length
-    rows.forEach(row => {
-      if (row.length !== size) {
-        return null
-      }
-    })
-  }
-  let table = []
-  rows.forEach(row => {
-    let items = []
-    for (let i = 0; i < row.length; i++) {
-      items.push(<ColItem text={row[i]} />)
-    }
-    table.push(items)
-  })
-  let ttable = []
-  for (let r = 0; r < table[0].length; r++) {
-    let col = []
-    table.forEach(row => {
-      col.push(row[r])
-    })
-    ttable.push(col)
-  }
-  console.log('ttable', ttable)
-  return ttable
-}
-const table2 = createTable([row1, row2])
-const table1 = createTable1([row1, row2])
 
 const HomeScreen = (props) => {
   const [currentRoundId, setCurrentRoundId] = useState(null)
@@ -138,7 +113,6 @@ const HomeScreen = (props) => {
       })
   }, [])
 
-  // uploads cached points to server
   const [addCachedPointsMutation] = useMutation(ADD_CACHED_POINTS, {
     onError: handleError,
     update: (store, response) => {
@@ -352,15 +326,6 @@ const HomeScreen = (props) => {
       })
     }
     setSavedState(false)
-    /*
-    const mutatedState = client.readQuery({
-      query: ALL_POINTS,
-      variables: {
-        roundId: roundId
-      }
-    })
-    console.log('mutated state', mutatedState.allPoints)
-    */
   }
   const deleteLastTrackFromCache = (roundId) => {
     const originalState = client.readQuery({
@@ -390,15 +355,6 @@ const HomeScreen = (props) => {
     if (trackIndex >= maxTrackIndex) {
       setTrackIndex(maxTrackIndex - 1)
     }
-    /*
-    const mutatedState = client.readQuery({
-      query: ALL_POINTS,
-      variables: {
-        roundId: roundId
-      }
-    })
-    console.log('mutated state', mutatedState.allPoints)
-    */
   }
 
   const uploadPointsFromCacheToServer = async () => {
@@ -415,7 +371,6 @@ const HomeScreen = (props) => {
     console.log('upload points from cache to server', allPoints)
     try {
       await setUploadingPointsState(true)
-      //await setSavedState(true)
       let response = await addCachedPointsMutation({
         variables: {
           roundId: currentRoundId,
@@ -430,15 +385,6 @@ const HomeScreen = (props) => {
       console.log('server and local state match', savedState)
     } catch (error) {
       handleError(error)
-    }
-  }
-
-  const addNewTrack = async () => {
-    const currentUsers = currentRound.users
-    console.log('add new track to round and trackindex', currentRound.id, currentRoundId, 'for users', currentUsers)
-    //try {
-    for (let i = 0; i < currentUsers.length; i++) {
-      addPointToCache(currentRoundId, currentUsers[i].id, currentRoundId + 1, 3)
     }
   }
 
@@ -474,7 +420,9 @@ const HomeScreen = (props) => {
   const allRoundsQuery = useQuery(ALL_ROUNDS, {
     skip: false
   })
-  const setLocation = (location) => {
+  const meQuery = useQuery(ME)
+
+  const selectLocation = (location) => {
     console.log('location to be set', location)
     if (location === currentLocation) {
       setCurrentLocation(null)
@@ -482,15 +430,6 @@ const HomeScreen = (props) => {
       setCurrentLocation(location)
     }
   }
-  const handleLocationClick = (location) =>
-    () => {
-      console.log('location clicked', location)
-      if (location === currentLocation) {
-        setCurrentLocation(null)
-      } else {
-        setCurrentLocation(location)
-      }
-    }
   const selectUser = (user) => {
     if (currentPlayers.includes(user)) {
       console.log('user deselected', user)
@@ -522,8 +461,6 @@ const HomeScreen = (props) => {
       }
     )
     console.log('response', response)
-    //setCurrentLocation(null)
-    //setCurrentPlayers([])
     setCurrentRound(response.data.addRound)
     setCurrentRoundId(response.data.addRound.id)
   }
@@ -537,11 +474,11 @@ const HomeScreen = (props) => {
   }
 
   return (
-    <View>
+    <View style={{ flex: 1 }}>
       {token && <Navigation show={true}
         doLogout={doLogout}
         setPage={setPage}
-        username={username}
+        meQuery={meQuery}
         currentRoundId={currentRoundId} />
       }
       {errorMessage && <View><Text>errorMessage</Text></View>
@@ -555,7 +492,7 @@ const HomeScreen = (props) => {
       {token && !currentRoundId && <AddRound
         allLocationsQuery={allLocationsQuery}
         allUsersQuery={allUsersQuery}
-        handleLocationClick={setLocation}
+        handleLocationClick={selectLocation}
         handleUserClick={selectUser}
         currentLocation={currentLocation}
         currentPlayers={currentPlayers}
@@ -582,9 +519,9 @@ const HomeScreen = (props) => {
         savedState={savedState}
         uploadingPoints={uploadingPointsState}
       />}
-      < View >
+      < View style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-end', padding: 10 }} >
         <Text>
-          Frisbeegolf app, Juho Taipale 2019
+          Frisbeegolf app, Fullstack course 2019 assignment, Juho Taipale
         </Text>
       </View >
     </View >

@@ -57,8 +57,9 @@ query {
 }
 `
 export const ME = gql`
-{
+query{
   me{
+    admin
     username
     id
   }

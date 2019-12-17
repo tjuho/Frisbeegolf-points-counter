@@ -18,11 +18,6 @@ const Locations = (props) => {
     return <View><Text>error...</Text></View>
   }
   const locations = props.allLocationsQuery.data.allLocations
-  console.log('locations 1', locations)
-  const handleLocationClick = (location) =>
-    () => {
-      props.handleLocationClick(location)
-    }
   return (
     <View>
       <ScrollView>
@@ -30,13 +25,11 @@ const Locations = (props) => {
           <Text>Locations</Text>
           {locations.map(location => {
             return (
-              <View key={location.id}>
-                <TouchableOpacity onClick={props.handleLocationClick ?
-                  () => props.handleLocationClick(location) :
-                  () => { console.log('location id clicked', location.id) }}>
-                  <Text>{location.name}</Text>
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity key={location.id} onPress={props.handleLocationClick ?
+                () => props.handleLocationClick(location) :
+                () => { console.log('location id clicked', location.id) }}>
+                <Text>{location.name}</Text>
+              </TouchableOpacity>
             )
           })}
         </View>

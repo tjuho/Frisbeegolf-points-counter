@@ -28,7 +28,6 @@ const AddRound = (props) => {
     console.log('errors', props.allUsersQuery.error, props.allLocationsQuery.error)
     return <View><Text>error...</Text></View>
   }
-
   const allLocations = props.allLocationsQuery.data.allLocations
   const allUsers = props.allUsersQuery.data.allUsers
   const currentLocation = props.currentLocation

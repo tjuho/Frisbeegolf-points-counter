@@ -6,6 +6,7 @@ const typeDefs = gql`
       username: String!
       friends: [User!]!
       id: ID!
+      admin: Boolean
     }
     type Token {
       token: String!

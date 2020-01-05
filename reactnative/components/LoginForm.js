@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { styles } from '../utils/styles'
 import {
   Image,
   Platform,
@@ -19,12 +20,6 @@ const LoginForm = (props) => {
   const login = async () => {
     props.doLogin(username, password)
   }
-  const onPasswordChange = (text) => {
-    setPassword(text)
-  }
-  const onUsernameChange = (text) => {
-    setUsername(text)
-  }
 
   return (
     <View>
@@ -32,14 +27,14 @@ const LoginForm = (props) => {
         <Text>Login to application</Text>
         <Text>Username</Text>
         <TextInput
-          onChangeText={text => onUsernameChange(text)}
+          onChangeText={text => setUsername(text)}
           value={username}
         />
       </View>
       <View>
         <Text>Password</Text>
         <TextInput
-          onChangeText={text => onPasswordChange(text)}
+          onChangeText={text => setPassword(text)}
           value={password}
           secureTextEntry={true}
         />

@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "navi appi",
-    "slug": "navi",
-    "privacy": "public",
+    "name": "frisbeegolf appi",
+    "slug": "frisb",
+    "privacy": "unlisted",
     "sdkVersion": "35.0.0",
     "platforms": [
       "ios",
@@ -24,7 +24,12 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.krooh.frisbapp"
+
+    },
+    "android": {
+      "package": "com.krooh.frisbapp"
     }
   }
 }

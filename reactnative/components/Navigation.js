@@ -1,4 +1,5 @@
 import React from 'react';
+import { styles } from '../utils/styles'
 import {
   Image,
   Platform,
@@ -30,32 +31,31 @@ const Navigation = (props) => {
     props.doLogout()
   }
   const user = props.meQuery.data.me
-  console.log('user', user)
   const currentRoundId = props.currentRoundId
   return (
-    <View style={styles.container}>
-      <View style={styles.item}>
-        <TouchableOpacity onPress={() => { setPage('main') }}><Text>main</Text></TouchableOpacity>
+    <View style={alignments.container}>
+      <View style={alignments.item}>
+        <TouchableOpacity style={styles.button} onPress={() => { setPage('main') }}><Text style={styles.buttonText}>MAIN</Text></TouchableOpacity>
       </View>
-      <View style={styles.item}>
+      <View style={alignments.item}>
         {currentRoundId ?
-          <TouchableOpacity onPress={() => { setPage('round') }}><Text>continue round</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={() => { setPage('round') }}><Text style={styles.buttonText}>CONTINUE ROUND</Text></TouchableOpacity>
           :
-          <TouchableOpacity onPress={() => { setPage('round') }}><Text>new round</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={() => { setPage('round') }}><Text style={styles.buttonText}>NEW ROUND</Text></TouchableOpacity>
         }
       </View>
-      <View style={styles.item}>
+      <View style={alignments.item}>
 
-        <View><Text>{user.username} {user.admin ? '(admin)' : ''} logged in</Text></View>
+        <View><Text style={styles.cellText}>{user.username} {user.admin ? '(admin) ' : ''}logged in</Text></View>
       </View>
-      <View style={styles.item}>
-        <TouchableOpacity onPress={() => { doLogout() }}><Text>logout</Text></TouchableOpacity>
+      <View style={alignments.item}>
+        <TouchableOpacity style={styles.button} onPress={() => { doLogout() }}><Text style={styles.buttonText}>LOGOUT</Text></TouchableOpacity>
       </View>
 
     </View>
   )
 }
-const styles = StyleSheet.create({
+const alignments = StyleSheet.create({
   item: {
     flex: 1,
     alignItems: 'center',

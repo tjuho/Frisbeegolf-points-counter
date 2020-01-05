@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { setContext } from 'apollo-link-context'
 import { split } from 'apollo-link'
 import { getMainDefinition } from 'apollo-utilities'
+import { WebSocketLink } from 'apollo-link-ws'
 
 //import your ApolloProvider from react-apollo to wrap your app.
 import { ApolloProvider } from 'react-apollo';
@@ -18,15 +19,30 @@ import { ApolloProvider as ApolloHooksProvider } from 'react-apollo-hooks'
 //import ApolloClient, InMemoryCache, and HttpLink to define your client to cnnect to your graphql server.//#endregion
 import { ApolloClient, InMemoryCache, HttpLink } from 'apollo-client-preset';
 import Root from './Root'
+let ioshttp = 'http://frisbeegolfappi.herokuapp.com/graphql'
+let androidhttp = 'http://frisbeegolfappi.herokuapp.com/graphql'
+let webhttp = 'http://frisbeegolfappi.herokuapp.com/graphql'
+let wsuri = `ws://frisbeegolfappi.herokuapp.com/graphql`
+
+if (process.env.NODE_ENV === 'development') {
+  ioshttp = 'http://localhost:4000/graphql'
+  androidhttp = 'http://10.0.2.2:4000/graphql'
+  webhttp = 'http://localhost:4000/graphql'
+  wsuri = `ws://localhost:4000/graphql`
+  console.log('start dev')
+}
 
 const httpLink = new HttpLink({
   uri: Platform.select({
-    ios: 'http://localhost:4000/graphql',
-    android: 'http://10.0.2.2:4000/graphql',
-    web: 'http://localhost:4000/graphql',
+    ios: ioshttp,
+    android: androidhttp,
+    web: webhttp,
   })
 })
-
+const wsLink = new WebSocketLink({
+  uri: wsuri,
+  options: { reconnect: true }
+})
 const authLink = setContext(async (_, { headers }) => {
   let token = null
   try {
@@ -42,8 +58,14 @@ const authLink = setContext(async (_, { headers }) => {
     }
   }
 })
-
-const link = authLink.concat(httpLink)
+const link = split(
+  ({ query }) => {
+    const { kind, operation } = getMainDefinition(query)
+    return kind === 'OperationDefinition' && operation === 'subscription'
+  },
+  wsLink,
+  authLink.concat(httpLink),
+)
 
 const client = new ApolloClient({
   //Assign to your cache property a instance of a InMemoryCache

@@ -1,4 +1,5 @@
 import React from 'react';
+import { styles } from '../utils/styles'
 import {
   Image,
   Platform,
@@ -20,7 +21,7 @@ const maxValue = (arr, def = -1) => {
   return temp
 }
 
-const styles = StyleSheet.create({
+const alignments = StyleSheet.create({
   cell: { padding: 3, paddingVertical: 10, alignItems: 'center', justifyContent: 'center' },
   textCell: { flex: 1 },
   HeaderTextCell: { flex: 1 },
@@ -132,45 +133,58 @@ const Round = (props) => {
 
   const TrackIndex = () => (
     <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-      <TouchableOpacity style={{ paddingHorizontal: 5, borderWidth: 1 }} onPress={handleTrackIndexChangeClick(selectedTrackIndex - 1)}>
-        <Text>-</Text>
+      <TouchableOpacity style={styles.button} onPress={handleTrackIndexChangeClick(selectedTrackIndex - 1)}>
+        <Text style={styles.buttonText}>-</Text>
       </TouchableOpacity>
-      <Text style={{ paddingHorizontal: 2 }}>Track {selectedTrackIndex + 1}</Text>
-      <TouchableOpacity style={{ paddingHorizontal: 5, borderWidth: 1 }} onPress={handleTrackIndexChangeClick(selectedTrackIndex + 1)}>
-        <Text>+</Text>
+      <Text style={styles.cellText}>Track {selectedTrackIndex + 1}</Text>
+      <TouchableOpacity style={styles.button} onPress={handleTrackIndexChangeClick(selectedTrackIndex + 1)}>
+        <Text style={styles.buttonText}>+</Text>
       </TouchableOpacity>
     </View>
   )
 
   const SelectedPlayCell = ({ play }) => (
-    //<View style={styles.selectedPlayCell}>
-    <View style={styles.selectedPlayCell}>
+    //<View style={alignments.selectedPlayCell}>
+    <View style={alignments.selectedPlayCell}>
       <TouchableOpacity
-        style={{ borderWidth: 1, paddingHorizontal: 5 }}
+        style={styles.button}
         onPress={handlePointChangeClick(play.points - 1, play.user)}>
-        <Text>-</Text>
+        <Text style={styles.buttonText}>-</Text>
       </TouchableOpacity>
-      <Text style={{ paddingHorizontal: 2 }} >{play.points}</Text>
+      <Text style={{ ...(styles.cellText), paddingHorizontal: 2 }} >{play.points}</Text>
       <TouchableOpacity
-        style={{ borderWidth: 1, paddingHorizontal: 5 }}
+        style={styles.button}
         onPress={handlePointChangeClick(play.points + 1, play.user)}>
-        <Text>+</Text>
+        <Text style={styles.buttonText}>+</Text>
       </TouchableOpacity>
     </View>
   )
   const PlayCell = ({ play }) => (
-    <View style={styles.playCell}>
-      <Text>{play.points}</Text>
+    <View>
+      <Text style={{ ...(styles.cellText), fontSize: styles.cellText.fontSize - 1 }}>{play.points}</Text>
     </View>
   )
   const TextCell = ({ text }) => (
-    <View style={styles.textCell}>
-      <Text>{text}</Text>
+    <View>
+      <Text style={styles.cellText}>{text}</Text>
     </View>
   )
   const HeaderTextCell = ({ text }) => (
-    <View style={styles.textCell}>
-      <Text>{text}</Text>
+    <View>
+      <Text style={styles.cellText}>{text}</Text>
+    </View>
+  )
+  const FlexTextCell = ({ text }) => (
+
+    <View style={{ flex: 1, alignItems: 'center' }}>
+      <Text style={styles.cellText}>{text}</Text>
+    </View>
+  )
+  const MyButton = ({ text, action, disabled }) => (
+    <View style={{ flex: 1, alignItems: 'center' }}>
+      <TouchableOpacity style={disabled ? styles.disabledButton : styles.button} onPress={disabled ? () => null : action}>
+        <Text style={styles.buttonText}>{text}</Text>
+      </TouchableOpacity>
     </View>
   )
 
@@ -215,16 +229,16 @@ const Round = (props) => {
   return (
     <View>
       <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'center' }}>
-        <Text style={{ flex: 1 }}>{round.location.name}</Text>
+        <FlexTextCell text={round.location.name} />
         <TrackIndex style={{ flex: 1 }} />
-        {savedState && <Text style={{ flex: 1 }}>saved state</Text>}
-        {!savedState && <Text style={{ flex: 1 }}>unsaved state</Text>}
+        {savedState && <FlexTextCell text={'saved state'} />}
+        {!savedState && <FlexTextCell text={'unsaved state'} />}
       </View>
       <View style={{ flexDirection: 'row' }}>
         {createComponentTable().map((col, i) => (
           <View key={i}>
             {col.map((item, j) => (
-              <View key={j} style={styles.cell}>
+              <View key={j} style={alignments.cell}>
                 {item}
               </View>
             ))}
@@ -232,15 +246,9 @@ const Round = (props) => {
         ))}
       </View>
       <View style={{ flexDirection: 'row' }}>
-        <TouchableOpacity style={{ padding: 10 }} title='delete last track' onPress={handleDeleteLastTrackClick}>
-          <Text>delete last track</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={{ padding: 10 }} title='finish round' onPress={handleRoundFinishClick}>
-          <Text>finish round</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={{ padding: 10 }} title='upload points' disabled={buttonDisabled} onPress={handleUploadPointsClick}>
-          <Text>upload points</Text>
-        </TouchableOpacity>
+        <MyButton text='DELETE LAST TRACK' action={handleDeleteLastTrackClick} />
+        <MyButton text='FINISH ROUND' action={handleRoundFinishClick} />
+        <MyButton text='UPLOAD POINTS' action={handleUploadPointsClick} disabled={buttonDisabled} />
       </View>
     </View >
   )

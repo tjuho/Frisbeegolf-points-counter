@@ -9,6 +9,7 @@ import {
   View,
   Button,
 } from 'react-native';
+import { styles } from '../utils/styles'
 
 const Rounds = (props) => {
   if (!props.show) {
@@ -36,22 +37,23 @@ const Rounds = (props) => {
   if (!rounds) {
     return null
   }
+  /*
   const renderRoundRow = (round) => {
     const d = new Date(round.date)
     const dateString = d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds()
     return (
-      <View style={styles.container} key={round.id}>
-        <View style={styles.item}>
+      <View style={alignments.container} key={round.id}>
+        <View style={alignments.item}>
           <TouchableOpacity onPress={handleRoundClick(round)}>
             <Text>{round.location.name}</Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.item} >
+        <View style={alignments.item} >
           <Text>{dateString}</Text>
         </View>
-        <View style={styles.container} >
+        <View style={alignments.container} >
           {
-            round.users.map(user => <View style={styles.item} key={user.username}><Text>{user.username}</Text></View>)
+            round.users.map(user => <View style={alignments.item} key={user.username}><Text>{user.username}</Text></View>)
           }
         </View>
         <View style={{ alignItems: 'center' }}>
@@ -62,43 +64,40 @@ const Rounds = (props) => {
   }
   const renderHeader = () => {
     return (
-      <View style={styles.container}>
-        <View style={styles.item} ><Text>location</Text></View>
-        <View style={styles.item} ><Text>date</Text></View>
-        <View style={styles.item} ><Text>players</Text></View>
+      <View style={alignments.container}>
+        <View style={alignments.item} ><Text>location</Text></View>
+        <View style={alignments.item} ><Text>date</Text></View>
+        <View style={alignments.item} ><Text>players</Text></View>
       </View>
     )
   }
+  */
   const ClickableRoundCell = ({ round }) => (
-    <View style={styles.selectedPlayCell}>
+    <View style={alignments.selectedPlayCell, styles.button}>
       <TouchableOpacity onPress={handleRoundClick(round)}>
-        <Text>{round.location.name}</Text>
+        <Text style={styles.buttonText}>{round.location.name}</Text>
       </TouchableOpacity>
     </View>
   )
   const TextCell = ({ text }) => (
-    <View style={styles.item}>
-      <Text>{text}</Text>
+    <View style={alignments.item}>
+      <Text style={styles.cellText}>{text}</Text>
     </View>
   )
   const ArrayTextCell = ({ array }) => (
-    <View style={styles.container}>
-      {array.map(text => <Text style={styles.item} key={text}>{text}</Text>)}
+    <View style={alignments.container}>
+      {array.map(text => <Text style={{ ...(styles.cellText), paddingHorizontal: 3 }} key={text}>{text}</Text>)}
     </View>
   )
   const HeaderTextCell = ({ text }) => (
-    <View style={styles.header}>
-      <Text>{text}</Text>
-    </View>
-  )
-  const ButtonHeaderCell = ({ }) => (
-    <View style={styles.buttonHeader}>
+    <View style={alignments.header}>
+      <Text style={styles.cellText}>{text}</Text>
     </View>
   )
   const DelButton = ({ round }) => (
-    <View style={styles.button}>
+    <View style={alignments.button, styles.button}>
       <TouchableOpacity onPress={handleDeleteRoundClick(round)}>
-        <Text>Y</Text>
+        <Text style={styles.buttonText}>Y</Text>
       </TouchableOpacity>
     </View>
   )
@@ -106,10 +105,10 @@ const Rounds = (props) => {
   const createComponentTable = () => {
     let table = []
     let row = []
-    row.push(<HeaderTextCell text='Location' />)
-    row.push(<HeaderTextCell text='Date' />)
-    row.push(<HeaderTextCell text='Players' />)
-    row.push(<HeaderTextCell text='Delete?' />)
+    row.push(<HeaderTextCell text='LOCATION' />)
+    row.push(<HeaderTextCell text='DATE' />)
+    row.push(<HeaderTextCell text='PLAYERS' />)
+    row.push(<HeaderTextCell text='DEL?' />)
     table.push(row)
     rounds.forEach(round => {
       row = []
@@ -137,7 +136,7 @@ const Rounds = (props) => {
       {createComponentTable().map((col, i) => (
         <View key={i}>
           {col.map((item, j) => (
-            <View key={j} style={styles.cell}>
+            <View key={j} style={alignments.cell}>
               {item}
             </View>
           ))}
@@ -146,7 +145,7 @@ const Rounds = (props) => {
     </View>
   )
 }
-const styles = StyleSheet.create({
+const alignments = StyleSheet.create({
   cell: { padding: 3, alignItems: 'center', },
   item: { paddingHorizontal: 5, alignItems: 'center' },
   container: { flex: 1, alignSelf: 'stretch', flexDirection: 'row' },

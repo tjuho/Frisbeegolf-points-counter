@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation, useApolloClient } from 'react-apollo-hooks'
+import { useQuery, useMutation, useApolloClient } from '@apollo/react-hooks'
 import { Container, Menu, Router } from 'semantic-ui-react'
 import Navigation from './components/Navigation'
 import Round from './components/Round'
 import AddRound from './components/AddRound'
 import Rounds from './components/Rounds'
 import LoginForm from './components/LoginForm'
-import Friends from './components/Friends'
-import Me from './components/Me'
 import crypto from 'crypto'
 import {
   ALL_FRIENDS,
@@ -20,6 +18,7 @@ import {
   ADD_ROUND,
   DELETE_ROUND,
   ADD_CACHED_POINTS,
+  ME,
 } from './querys'
 import useTimeout from './useTimeout'
 
@@ -251,16 +250,8 @@ const App = (props) => {
       })
     }
     setSavedState(false)
-    /*
-    const mutatedState = client.readQuery({
-      query: ALL_POINTS,
-      variables: {
-        roundId: roundId
-      }
-    })
-    console.log('mutated state', mutatedState.allPoints)
-    */
   }
+
   const deleteLastTrackFromCache = (roundId) => {
     const originalState = client.readQuery({
       query: ALL_POINTS,
@@ -289,15 +280,6 @@ const App = (props) => {
     if (trackIndex >= maxTrackIndex) {
       setTrackIndex(maxTrackIndex - 1)
     }
-    /*
-    const mutatedState = client.readQuery({
-      query: ALL_POINTS,
-      variables: {
-        roundId: roundId
-      }
-    })
-    console.log('mutated state', mutatedState.allPoints)
-    */
   }
 
   const uploadPointsFromCacheToServer = async () => {
@@ -314,7 +296,6 @@ const App = (props) => {
     console.log('upload points from cache to server', allPoints)
     try {
       await setUploadingPointsState(true)
-      //await setSavedState(true)
       let response = await addCachedPointsMutation({
         variables: {
           roundId: currentRoundId,
@@ -329,15 +310,6 @@ const App = (props) => {
       console.log('server and local state match', savedState)
     } catch (error) {
       handleError(error)
-    }
-  }
-
-  const addNewTrack = async () => {
-    const currentUsers = currentRound.users
-    console.log('add new track to round and trackindex', currentRound.id, currentRoundId, 'for users', currentUsers)
-    //try {
-    for (let i = 0; i < currentUsers.length; i++) {
-      addPointToCache(currentRoundId, currentUsers[i].id, currentRoundId + 1, 3)
     }
   }
 
@@ -426,13 +398,14 @@ const App = (props) => {
     setCurrentLocation(null)
     setPage('main')
   }
+  const meQuery = useQuery(ME)
 
   return (
     <Container>
       {token && <Navigation show={true}
         doLogout={doLogout}
         setPage={setPage}
-        username={username}
+        meQuery={meQuery}
         currentRoundId={currentRoundId} />
       }
       {errorMessage && <div>errorMessage</div>
@@ -454,7 +427,7 @@ const App = (props) => {
         show={page === 'round'}
       />}
       {token && <Rounds
-        result={allRoundsQuery}
+        allLocationsQuery={allRoundsQuery}
         setRound={setNewRound}
         deleteRound={deleteRound}
         show={page === 'main'}
@@ -475,7 +448,7 @@ const App = (props) => {
       />}
       <div>
         <br />
-        <em>Frisbeegolf app, Juho Taipale 2019</em>
+        <em>Frisbeegolf app, Fullstack course 2019 assignment, Juho Taipale</em>
       </div>
     </Container>
   )

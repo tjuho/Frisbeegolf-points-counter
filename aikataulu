@@ -14,3 +14,4 @@
 19.11 8h ohjelma käyttää nyt cacheta ja käyttäjä voi ladata pisteet serverille. Myös bugien korjausta
 1-12.12 18h react native käyttöliittymän ensi versio
 17.12 4h react nativen viilaamista ja bugien korjaamista
+4.-5.1 10h react nativen, backendin ja frontendin testejä. React nativen käyttöliittymän näkymän parantamista. React native toimii nyt verkossa olevan backendin kanssa.

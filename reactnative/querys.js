@@ -5,7 +5,6 @@ mutation login($username: String!, $password: String! ){
     token
     username
   }
-  
 }
 `
 export const ALL_FRIENDS = gql`

@@ -4,14 +4,14 @@ const Locations = (props) => {
   if (!props.show) {
     return null
   }
-  if (props.result.loading) {
+  if (props.allLocationsQuery.loading) {
     return <div>loading...</div>
   }
-  if (props.result.error) {
-    console.log('error', props.result.error)
+  if (props.allLocationsQuery.error) {
+    console.log('error', props.allLocationsQuery.error)
     return <div>error...</div>
   }
-  const locations = props.result.data.allLocations
+  const locations = props.allLocationsQuery.data.allLocations
   return (
     <div>
       <table>

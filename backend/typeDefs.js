@@ -37,12 +37,10 @@ const typeDefs = gql`
     type Query {      
       allUsers: [User!]!
       allLocations: [Location!]!
-      allRounds(location: String): [Round!]!
-      allPlays(roundId: ID, playNumber: Int, username: String): [Play!]!
-      allPoints(roundId: ID!, userId: ID, trackIndex: Int): [Point]
+      allRounds: [Round!]!
+      allPoints(roundId: ID, userId: ID, trackIndex: Int): [Point!]!
       allFriends(username: String): [User]      
       me: User
-      login(username: String!, password: String!): Token
     }
     type Mutation {
       login(
@@ -77,7 +75,7 @@ const typeDefs = gql`
       addPoints(
         roundIds: [ID!]!
         userIds: [ID!]!
-        trackIndexes: [ID!]!
+        trackIndexes: [Int!]!
         points: [Int!]!
       ): [Point]
       addCachedPoints(
@@ -101,7 +99,7 @@ const typeDefs = gql`
         roundId: ID!
       ): Round
       deleteLocation(
-        name: String!
+        locationId: ID!
       ): Location
     }
     type Subscription {

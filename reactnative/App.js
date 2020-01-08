@@ -23,14 +23,15 @@ let ioshttp = 'http://frisbeegolfappi.herokuapp.com/graphql'
 let androidhttp = 'http://frisbeegolfappi.herokuapp.com/graphql'
 let webhttp = 'http://frisbeegolfappi.herokuapp.com/graphql'
 let wsuri = `ws://frisbeegolfappi.herokuapp.com/graphql`
-
-if (process.env.NODE_ENV === 'development') {
+if (__DEV__) {
   ioshttp = 'http://localhost:4000/graphql'
   androidhttp = 'http://10.0.2.2:4000/graphql'
   webhttp = 'http://localhost:4000/graphql'
   wsuri = `ws://localhost:4000/graphql`
   console.log('start dev')
 }
+
+//console.log('http', webhttp, 'ws link', wsuri)
 
 const httpLink = new HttpLink({
   uri: Platform.select({
@@ -100,14 +101,14 @@ async function loadResourcesAsync() {
     Asset.loadAsync([
       require('./assets/images/robot-dev.png'),
       require('./assets/images/robot-prod.png'),
-    ]),
+    ]),/*
     Font.loadAsync({
       // This is the font that we are using for our tab bar
       ...Ionicons.font,
       // We include SpaceMono because we use it in HomeScreen.js. Feel free to
       // remove this if you are not using it in your app
       'space-mono': require('./assets/fonts/SpaceMono-Regular.ttf'),
-    }),
+    }),*/
   ]);
 }
 

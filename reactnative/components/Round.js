@@ -36,20 +36,17 @@ const Round = (props) => {
   if (!props.show) {
     return null
   }
-  //console.log('round', props.round)
   if (!props.round) {
     console.log('no round chosen')
     return null
   }
   if (props.allPointsQuery.loading) {
-    console.log('loading')
     return <View><Text>loading...</Text></View>
   }
   if (props.allPointsQuery.error) {
     console.log('error', props.allPointsQuery.error)
     return <View><Text>error...</Text></View>
   }
-  //console.log('saved state and uploading points state', props.savedState, props.uploadingPoints)
   const savedState = props.savedState
   const uploadingPoints = props.uploadingPoints
   const buttonDisabled = savedState || uploadingPoints
@@ -58,8 +55,6 @@ const Round = (props) => {
   const allPoints = props.allPointsQuery.data.allPoints
   const round = props.round
   let order = players.slice()
-  console.log('all points', allPoints)
-  console.log('players ', props.round.users)
 
   const maxTrackIndex = maxValue(allPoints.map(play => play.trackIndex), -1)
   if (selectedTrackIndex === -1 && maxTrackIndex > -1) {
@@ -67,7 +62,6 @@ const Round = (props) => {
     return null
   }
   if (allPoints.length === 0) {
-    console.log('new round', props.round)
     props.addNewTrack()
     props.changeTrack(0)
   }
@@ -82,9 +76,7 @@ const Round = (props) => {
   }
   const handleTrackIndexChangeClick = (index) =>
     () => {
-      console.log('new index', index, 'max index', maxTrackIndex)
       if (maxTrackIndex + 1 === index) {
-        console.log('add new track')
         props.addNewTrack()
       }
       props.changeTrack(index)
@@ -113,7 +105,6 @@ const Round = (props) => {
     }
     return 0
   })
-  //console.log('order', order)
   const orderOf = (player) => {
     for (let i = 0; i < order.length; i++) {
       if (player === order[i]) {
@@ -122,15 +113,10 @@ const Round = (props) => {
     }
     return 'err'
   }
-
-
   const trackNumbers = []
-  console.log('max track index', maxTrackIndex, 'track index', selectedTrackIndex)
   for (let i = 0; i < maxTrackIndex + 1; i++) {
     trackNumbers.push(i + 1)
   }
-  console.log('track numbers th', trackNumbers, 'all points', allPoints)
-
   const TrackIndex = () => (
     <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
       <TouchableOpacity style={styles.button} onPress={handleTrackIndexChangeClick(selectedTrackIndex - 1)}>
@@ -142,7 +128,6 @@ const Round = (props) => {
       </TouchableOpacity>
     </View>
   )
-
   const SelectedPlayCell = ({ play }) => (
     //<View style={alignments.selectedPlayCell}>
     <View style={alignments.selectedPlayCell}>

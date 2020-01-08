@@ -18,18 +18,15 @@ const Users = (props) => {
     return <Text>error...</Text>
   }
   const users = props.allUsersQuery.data.allUsers
-  console.log('Users', users)
   const handleUserClick = (user) =>
     () => {
-      console.log('user clicked', user)
       props.handleUserClick(user)
     }
   return (
     <ScrollView>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        {users.map(user => {
-          { console.log('user item', user) }
-          return (
+        {users.map(user =>
+          (
             <View key={user.id}>
               <TouchableOpacity onClick={props.handleUserClick ?
                 handleUserClick(user) :
@@ -38,7 +35,7 @@ const Users = (props) => {
               </TouchableOpacity>
             </View>
           )
-        })}
+        )}
       </View>
     </ScrollView>
   )

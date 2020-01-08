@@ -22,26 +22,30 @@ const LoginForm = (props) => {
   }
 
   return (
-    <View>
-      <View>
-        <Text>Login to application</Text>
-        <Text>Username</Text>
+    <View style={{ alignSelf: 'center' }}>
+      <View style={{ paddingBottom: 20 }}>
+        <Text style={styles.cellText}>Login to application</Text>
+      </View>
+      <View style={{ paddingBottom: 20 }}>
+        <Text style={styles.cellText}>Username</Text>
         <TextInput
           onChangeText={text => setUsername(text)}
           value={username}
         />
       </View>
-      <View>
-        <Text>Password</Text>
+      <View style={{ paddingBottom: 20 }}>
+        <Text style={styles.cellText}>Password</Text>
         <TextInput
           onChangeText={text => setPassword(text)}
           value={password}
           secureTextEntry={true}
         />
       </View>
-      <TouchableOpacity onPress={login}>
-        <Text>Login</Text>
-      </TouchableOpacity>
+      <View style={{ alignSelf: 'center' }}>
+        <TouchableOpacity style={styles.button} onPress={login}>
+          <Text style={styles.buttonText}>Login</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   )
 }

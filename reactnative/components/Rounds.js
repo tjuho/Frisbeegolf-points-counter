@@ -19,17 +19,14 @@ const Rounds = (props) => {
     return <View><Text>loading...</Text></View>
   }
   if (props.result.error) {
-    console.log('error', props.result.error)
     return <View><Text>error...</Text></View>
   }
   const handleRoundClick = (round) =>
     () => {
-      console.log('round clicked', round)
       props.setRound(round)
     }
   const handleDeleteRoundClick = (round) =>
     () => {
-      console.log('delete round clicked', round)
       props.deleteRound(round)
     }
   const rounds = props.result.data.allRounds

@@ -19,7 +19,6 @@ const Navigation = (props) => {
     return <View><Text>loading...</Text></View>
   }
   if (props.meQuery.error) {
-    console.log('error', props.meQuery.error)
     return <View><Text>error...</Text></View>
   }
 
@@ -61,7 +60,7 @@ const alignments = StyleSheet.create({
     alignItems: 'center',
   },
   container: {
-    flexDirection: 'row', alignItems: 'center'
+    flexDirection: 'row', alignItems: 'center', paddingVertical: 20
   },
 })
 

@@ -75,7 +75,6 @@ const HomeScreen = (props) => {
       })
       const localPoints = dataInStore.allPoints
       setSavedState(true)
-      console.log('local and server lengths', localPoints.length, serverPoints.length)
       if (serverPoints.length !== localPoints.length) {
         setSavedState(false)
 
@@ -88,17 +87,14 @@ const HomeScreen = (props) => {
               && serverPoint.trackIndex === localPoint.trackIndex
               && serverPoint.points === localPoint.points) {
               foundMatch = true
-              console.log('found match')
               return
             }
           })
           if (!foundMatch) {
-            console.log('set saved state to false')
             setSavedState(false)
           }
         });
       }
-      console.log('local and server points', localPoints, serverPoints)
     }
   })
 
@@ -123,9 +119,7 @@ const HomeScreen = (props) => {
         query: ALL_ROUNDS
       })
       const deletedRound = response.data.deleteRound
-      console.log('deleted round', deletedRound, 'rounds before', dataInStore.allRounds)
       const temp = dataInStore.allRounds.filter(round => round.id !== deletedRound.id)
-      console.log('new data in store', temp)
       client.writeQuery({
         query: ALL_ROUNDS,
         data: { allRounds: temp }
@@ -174,14 +168,13 @@ const HomeScreen = (props) => {
       setToken(null)
       setUsername(null)
       client.resetStore()
-      console.log('logged out')
     }
     catch (error) {
       console.log('error removing token', error)
     }
   }
 
-  const handleError = (error, text = 'default') => {
+  const handleError = (error, text = '') => {
     console.error(text, error)
     if (error.graphQLErrors.length > 0) {
       setErrorMessage(error.graphQLErrors[0].message)
@@ -208,7 +201,6 @@ const HomeScreen = (props) => {
       }
     })
     const allPoints = originalState.allPoints
-    console.log('all points', allPoints)
     let max = -1
     allPoints.forEach(point => {
       if (point.trackIndex > max) {
@@ -221,25 +213,16 @@ const HomeScreen = (props) => {
     //TODO: get max track index and add new track
   }
   const addPointToCache = (roundId, userId, trackIndex, points) => {
-    console.log('add point with roundId userId, trackindex, points', roundId, userId, trackIndex, points)
     const originalState = client.readQuery({
       query: ALL_POINTS,
       variables: {
         roundId: roundId
       }
     })
-    console.log('original state', originalState.allPoints)
     const temp = originalState.allPoints.filter(point =>
       point.user.id === userId && point.trackIndex === trackIndex)
-    console.log('found data from cache', temp.length > 0 ? temp : false)
     if (temp.length > 0) {
       const data = temp[0]
-      console.log('new state', originalState.allPoints
-        .filter(point => point.id !== data.id)
-        .concat({
-          ...data,
-          points
-        }))
       client.writeQuery({
         query: ALL_POINTS,
         variables: {
@@ -263,7 +246,6 @@ const HomeScreen = (props) => {
         id: getRandomId(),
         __typename: 'Point'
       }
-      console.log('add new point', newPoint)
       client.writeQuery({
         query: ALL_POINTS,
         variables: {
@@ -287,11 +269,9 @@ const HomeScreen = (props) => {
     if (originalState.allPoints.length === 0) {
       return
     }
-    console.log('original state', originalState.allPoints)
     const maxTrackIndex = originalState.allPoints
       .map(point => point.trackIndex)
       .sort((i1, i2) => i2 - i1)[0]
-    console.log('maxTrackindex', maxTrackIndex)
     client.writeQuery({
       query: ALL_POINTS,
       variables: {
@@ -318,7 +298,6 @@ const HomeScreen = (props) => {
       return
     }
     const allPoints = originalState.allPoints
-    console.log('upload points from cache to server', allPoints)
     try {
       await setUploadingPointsState(true)
       let response = await addCachedPointsMutation({
@@ -331,19 +310,15 @@ const HomeScreen = (props) => {
         }
       })
       setUploadingPointsState(false)
-      console.log('response', response)
-      console.log('server and local state match', savedState)
     } catch (error) {
       handleError(error)
     }
   }
 
   const deleteLastTrack = async () => {
-    console.log('delete last track')
     deleteLastTrackFromCache(currentRoundId)
   }
   const updatePoint = async (points, userId) => {
-    console.log('add point with points and userId', points, 'trackIndex', trackIndex, userId, currentRoundId)
     addPointToCache(currentRoundId, userId, trackIndex, points)
   }
 
@@ -351,7 +326,6 @@ const HomeScreen = (props) => {
     setTrackIndex(index)
   }
   const setNewRound = (round) => {
-    console.log('round', round)
     setCurrentRound(round)
     setCurrentRoundId(round.id)
     setTrackIndex(-1)
@@ -382,7 +356,6 @@ const HomeScreen = (props) => {
   })
 
   const selectLocation = (location) => {
-    console.log('location to be set', location)
     if (location === currentLocation) {
       setCurrentLocation(null)
     } else {
@@ -391,15 +364,12 @@ const HomeScreen = (props) => {
   }
   const selectUser = (user) => {
     if (currentPlayers.includes(user)) {
-      console.log('user deselected', user)
       setCurrentPlayers(currentPlayers.filter(player => player !== user))
     } else {
-      console.log('user selected', user)
       setCurrentPlayers(currentPlayers.concat(user))
     }
   }
   const deleteRound = async (round) => {
-    console.log('delte round with id', round.id)
     const response = await deleteRoundMutation(
       {
         variables: {
@@ -407,10 +377,8 @@ const HomeScreen = (props) => {
         }
       }
     )
-    console.log('response', response)
   }
   const startNewRound = async () => {
-    console.log('start new round', currentLocation.id, currentPlayers.map(user => user.id))
     const response = await addRoundMutation(
       {
         variables: {
@@ -419,12 +387,10 @@ const HomeScreen = (props) => {
         }
       }
     )
-    console.log('response', response)
     setCurrentRound(response.data.addRound)
     setCurrentRoundId(response.data.addRound.id)
   }
   const finishRound = () => {
-    console.log('finish round')
     setCurrentRound(null)
     setCurrentRoundId(null)
     setCurrentPlayers([])
@@ -434,7 +400,7 @@ const HomeScreen = (props) => {
 
   return (
     <View style={{ flex: 1 }}>
-      <Text style={{ fontSize: 20, paddingVertical: 20, alignSelf: "center" }}>Frisbeegolf app</Text>
+      <Text style={{ fontSize: 20, paddingVertical: 15, alignSelf: "center" }}>Frisbeegolf app</Text>
       {token && <Navigation show={true}
         doLogout={doLogout}
         setPage={setPage}

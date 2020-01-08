@@ -1,27 +1,4 @@
-const theme = {
-  light: {},
-  dark: {
-    container: {
-      backgroundColor: "#000"
-    },
-    text: {
-      color: "#fff"
-    }
-  }
-};
-
 const styles = {
-  container: {
-    padding: 20,
-    backgroundColor: "#fff"
-  },
-  text: {
-    fontSize: 16,
-    color: "#000"
-  },
-  cellPadding: {
-    paddingHorizontal: 3,
-  },
   button: {
     backgroundColor: "#6495ED",
     paddingHorizontal: 3,
@@ -47,4 +24,4 @@ const styles = {
   }
 };
 
-export { theme, styles }
+export { styles }

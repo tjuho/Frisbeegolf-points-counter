@@ -1,14 +1,11 @@
-import React, { useState, useEffect } from "react";
+import { useEffect } from "react";
 
-function useTimeout(doLogout) {
+const useTimeout = (doLogout) => {
   const signoutTime = 1000 * 60 * 60
   let logoutTimeout;
 
-  const warn = () => {
-    console.log('Warning');
-  };
   const logout = () => {
-    console.log('You have been loged out');
+    console.log('You have been logged out');
     doLogout()
   }
 
@@ -40,15 +37,8 @@ function useTimeout(doLogout) {
       window.addEventListener(events[i], resetTimeout);
     }
 
-    setTimeouts();/*
-    return () => {
-      console.log('loop called')
-      for (let i in events) {
-        window.removeEventListener(events[i], resetTimeout);
-        clearTimeouts();
-      }
-    }*/
-  }, []);
+    setTimeouts();
+  });
 }
 
 export default useTimeout

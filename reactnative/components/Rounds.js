@@ -34,41 +34,7 @@ const Rounds = (props) => {
   if (!rounds) {
     return null
   }
-  /*
-  const renderRoundRow = (round) => {
-    const d = new Date(round.date)
-    const dateString = d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds()
-    return (
-      <View style={alignments.container} key={round.id}>
-        <View style={alignments.item}>
-          <TouchableOpacity onPress={handleRoundClick(round)}>
-            <Text>{round.location.name}</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={alignments.item} >
-          <Text>{dateString}</Text>
-        </View>
-        <View style={alignments.container} >
-          {
-            round.users.map(user => <View style={alignments.item} key={user.username}><Text>{user.username}</Text></View>)
-          }
-        </View>
-        <View style={{ alignItems: 'center' }}>
-          <Button title='del' onPress={handleDeleteRoundClick(round)} />
-        </View>
-      </View>
-    )
-  }
-  const renderHeader = () => {
-    return (
-      <View style={alignments.container}>
-        <View style={alignments.item} ><Text>location</Text></View>
-        <View style={alignments.item} ><Text>date</Text></View>
-        <View style={alignments.item} ><Text>players</Text></View>
-      </View>
-    )
-  }
-  */
+
   const ClickableRoundCell = ({ round }) => (
     <View style={alignments.selectedPlayCell, styles.button}>
       <TouchableOpacity onPress={handleRoundClick(round)}>
@@ -94,7 +60,7 @@ const Rounds = (props) => {
   const DelButton = ({ round }) => (
     <View style={alignments.button, styles.button}>
       <TouchableOpacity onPress={handleDeleteRoundClick(round)}>
-        <Text style={styles.buttonText}>Y</Text>
+        <Text style={styles.buttonText}>X</Text>
       </TouchableOpacity>
     </View>
   )

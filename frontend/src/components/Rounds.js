@@ -1,27 +1,25 @@
 import React from 'react'
-
+import '../styles.css'
 const Rounds = (props) => {
   if (!props.show) {
     return null
   }
-  if (props.result.loading) {
+  if (props.allRoundsQuery.loading) {
     return <div>loading...</div>
   }
-  if (props.result.error) {
-    console.log('error', props.result.error)
+  if (props.allRoundsQuery.error) {
+    console.log('error', props.allRoundsQuery.error)
     return <div>error...</div>
   }
+
   const handleRoundClick = (round) =>
     () => {
-      console.log('round clicked', round)
       props.setRound(round)
     }
-  const handleDeleteRoundClick = (round) =>
-    () => {
-      console.log('delete round clicked', round)
-      props.deleteRound(round)
-    }
-  const rounds = props.result.data.allRounds
+  const deleteRound = (round) => {
+    props.deleteRound(round)
+  }
+  const rounds = props.allRoundsQuery.data.allRounds
   rounds.sort((r1, r2) => r2.date - r1.date)
   if (!rounds) {
     return null
@@ -31,20 +29,27 @@ const Rounds = (props) => {
       <table className="ui celled table">
         <thead>
           <tr key='header'>
-            <th>location</th><th>date</th><th colSpan="99">players</th>
+            <th>location</th><th>date</th><th>players</th><th>delete</th>
           </tr>
         </thead>
         <tbody>
           {rounds.map(round => {
             const d = new Date(round.date)
             const dateString = d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds()
+            let userFields = []
+            for (let i = 0; i < round.users.length; i++) {
+              const user = round.users[i]
+              const total = round.totals ? round.totals[i] : null
+              userFields.push(user.username.toString() + (total ? ':' + total.toString() : ''))
+            }
+            const userField = userFields.join('\n')
             return (
               <tr key={round.id}>
-                <td onClick={handleRoundClick(round)}>{round.location.name}</td><td>{dateString}</td>
-                {round.users.map(user =>
-                  <td key={user.username}>{user.username}</td>
-                )}
-                <td><button onClick={handleDeleteRoundClick(round)}>delete</button></td>
+                <td className="pointer" onClick={handleRoundClick(round)}>{round.location.name}</td><td>{dateString}</td>
+                <td><span>{userField}</span></td>
+                <td>
+                  <button className='ui button' onClick={() => { if (window.confirm('Are you sure you wish to delete this round?')) deleteRound(round) }} >X</button>
+                </td>
               </tr>
             )
           }

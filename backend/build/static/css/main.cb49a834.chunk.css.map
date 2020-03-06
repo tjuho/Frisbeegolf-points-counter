@@ -1,0 +1,1 @@
+{"version":3,"sources":["styles.css"],"names":[],"mappings":"AAAA,OACE,SACF,CACA,SACE,cACF,CACA,QACE,iBACF","file":"main.cb49a834.chunk.css","sourcesContent":[".error {\n  color: red;\n}\n.pointer {\n  cursor: pointer;\n}\n.center {\n  text-align: center;\n}"]}

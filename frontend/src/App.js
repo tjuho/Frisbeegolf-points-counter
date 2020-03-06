@@ -8,7 +8,6 @@ import Rounds from './components/Rounds'
 import LoginForm from './components/LoginForm'
 import crypto from 'crypto'
 import {
-  ALL_FRIENDS,
   ALL_LOCATIONS,
   ALL_ROUNDS,
   ALL_POINTS,
@@ -21,6 +20,7 @@ import {
   ME,
 } from './querys'
 import useTimeout from './useTimeout'
+import './styles.css'
 
 const App = (props) => {
   const [currentRoundId, setCurrentRoundId] = useState(null)
@@ -30,18 +30,15 @@ const App = (props) => {
   const [errorMessage, setErrorMessage] = useState(null)
   const [trackIndex, setTrackIndex] = useState(0)
   const [token, setToken] = useState(null)
-  const [username, setUsername] = useState(null)
+  //const [username, setUsername] = useState(null)
   const [page, setPage] = useState("main")
   const client = useApolloClient()
   const [savedState, setSavedState] = useState(true)
   const [uploadingPointsState, setUploadingPointsState] = useState(false)
 
   useEffect(() => {
-    const username = localStorage.getItem('username')
     const token = localStorage.getItem('token')
-    console.log('restore logged user', username, token)
     setToken(token)
-    setUsername(username)
   }, [])
 
   const getRandomId = () => {
@@ -55,26 +52,23 @@ const App = (props) => {
         password
       }
     })
-    const token = response.data.login.token
-    const tusername = response.data.login.username
-    console.log('login token and username', token, tusername)
-    if (token) {
-      //localStorage.setItem('token', token)
-      setToken(token)
-      setUsername(username)
-      localStorage.setItem('username', tusername)
-      localStorage.setItem('token', token)
-      setPage('main')
-      client.resetStore()
+    if (response) {
+      const loginToken = response.data.login.token
+      const loginUsername = response.data.login.username
+      if (loginToken) {
+        await client.resetStore()
+        localStorage.setItem('token', loginToken)
+        localStorage.setItem('username', loginUsername)
+        setToken(loginToken)
+        setPage('main')
+      }
     }
   }
 
-  const doLogout = () => {
-    console.log('logout')
+  const doLogout = async () => {
     setToken(null)
-    setUsername(null)
     localStorage.clear()
-    client.resetStore()
+    await client.resetStore()
   }
   useTimeout(doLogout)
   if (props.sessionTimeout) {
@@ -87,7 +81,7 @@ const App = (props) => {
       setErrorMessage(error.graphQLErrors[0].message)
       setTimeout(() => {
         setErrorMessage(null)
-      }, 10000)
+      }, 7000)
     }
     else if (error.networkError) {
       const errorArray = error.networkError.result.errors
@@ -95,14 +89,14 @@ const App = (props) => {
         setErrorMessage(errorArray[0].message)
         setTimeout(() => {
           setErrorMessage(null)
-        }, 10000)
+        }, 7000)
       }
     }
   }
 
 
   // uploads cached points to server
-  const addCachedPointsMutation = useMutation(ADD_CACHED_POINTS, {
+  const [addCachedPointsMutation] = useMutation(ADD_CACHED_POINTS, {
     onError: handleError,
     update: (store, response) => {
       const serverPoints = response.data.addCachedPoints
@@ -114,7 +108,6 @@ const App = (props) => {
       })
       const localPoints = dataInStore.allPoints
       setSavedState(true)
-      console.log('local and server lengths', localPoints.length, serverPoints.length)
       if (serverPoints.length !== localPoints.length) {
         setSavedState(false)
 
@@ -127,52 +120,82 @@ const App = (props) => {
               && serverPoint.trackIndex === localPoint.trackIndex
               && serverPoint.points === localPoint.points) {
               foundMatch = true
-              console.log('found match')
               return
             }
           })
           if (!foundMatch) {
-            console.log('set saved state to false')
             setSavedState(false)
           }
         });
+        //TODO: update the points in the all rounds view
+        /*
+        if (savedState && serverPoints.length > 0) {
+          const roundId = serverPoints[0].round.id
+          const allRoundsInStore = store.readQuery({
+            query: ALL_ROUNDS
+          })
+          allRoundsInStore.allRounds.forEach(round => {
+            if (round.id === roundId) {
+
+            }
+          })*//*
+    store.writeQuery({
+      query: ALL_ROUNDS
+    })
+  }*/
       }
-      console.log('local and server points', localPoints, serverPoints)
     }
   })
 
-  const addRoundMutation = useMutation(ADD_ROUND, {
+  const [addRoundMutation] = useMutation(ADD_ROUND, {
     onError: handleError,
     update: (store, response) => {
       let dataInStore = store.readQuery({
         query: ALL_ROUNDS
       })
+      console.log('data in store before', dataInStore.allRounds)
       const addedRound = response.data.addRound
       const temp = dataInStore.allRounds.filter(round => round.id !== addedRound.id).concat(addedRound)
+      console.log('added round', addedRound)
+      console.log('all rounds', temp)
       client.writeQuery({
         query: ALL_ROUNDS,
         data: { allRounds: temp }
       })
     }
   })
-  const deleteRoundMutation = useMutation(DELETE_ROUND, {
+  const [addLocationMutation] = useMutation(ADD_LOCATION, {
+    onError: handleError,
+    update: (store, response) => {
+      let dataInStore = store.readQuery({
+        query: ALL_LOCATIONS
+      })
+      const addedLocation = response.data.addLocation
+      const temp = dataInStore.allLocations.filter(location => location.id !== addedLocation.id).concat(addedLocation)
+      client.writeQuery({
+        query: ALL_LOCATIONS,
+        data: { allLocations: temp }
+      })
+    }
+  })
+  const [deleteRoundMutation] = useMutation(DELETE_ROUND, {
     onError: handleError,
     update: (store, response) => {
       let dataInStore = store.readQuery({
         query: ALL_ROUNDS
       })
       const deletedRound = response.data.deleteRound
-      console.log('deleted round', deletedRound, 'rounds before', dataInStore.allRounds)
       const temp = dataInStore.allRounds.filter(round => round.id !== deletedRound.id)
-      console.log('new data in store', temp)
       client.writeQuery({
         query: ALL_ROUNDS,
         data: { allRounds: temp }
       })
     }
   })
-  const loginMutation = useMutation(LOGIN, {
-    onError: handleError
+  const [loginMutation] = useMutation(LOGIN, {
+    onError: handleError,
+    update: (store, response) => {
+    }
   })
   const addNewTrackToCache = () => {
     const originalState = client.readQuery({
@@ -182,7 +205,6 @@ const App = (props) => {
       }
     })
     const allPoints = originalState.allPoints
-    console.log('all points', allPoints)
     let max = -1
     allPoints.forEach(point => {
       if (point.trackIndex > max) {
@@ -192,28 +214,18 @@ const App = (props) => {
     currentRound.users.forEach(player => {
       addPointToCache(currentRoundId, player.id, max + 1, 3)
     })
-    //TODO: get max track index and add new track
   }
   const addPointToCache = (roundId, userId, trackIndex, points) => {
-    console.log('add point with roundId userId, trackindex, points', roundId, userId, trackIndex, points)
     const originalState = client.readQuery({
       query: ALL_POINTS,
       variables: {
         roundId: roundId
       }
     })
-    console.log('original state', originalState.allPoints)
     const temp = originalState.allPoints.filter(point =>
       point.user.id === userId && point.trackIndex === trackIndex)
-    console.log('found data from cache', temp.length > 0 ? temp : false)
     if (temp.length > 0) {
       const data = temp[0]
-      console.log('new state', originalState.allPoints
-        .filter(point => point.id !== data.id)
-        .concat({
-          ...data,
-          points
-        }))
       client.writeQuery({
         query: ALL_POINTS,
         variables: {
@@ -237,7 +249,6 @@ const App = (props) => {
         id: getRandomId(),
         __typename: 'Point'
       }
-      console.log('add new point', newPoint)
       client.writeQuery({
         query: ALL_POINTS,
         variables: {
@@ -262,11 +273,9 @@ const App = (props) => {
     if (originalState.allPoints.length === 0) {
       return
     }
-    console.log('original state', originalState.allPoints)
     const maxTrackIndex = originalState.allPoints
       .map(point => point.trackIndex)
       .sort((i1, i2) => i2 - i1)[0]
-    console.log('maxTrackindex', maxTrackIndex)
     client.writeQuery({
       query: ALL_POINTS,
       variables: {
@@ -293,10 +302,9 @@ const App = (props) => {
       return
     }
     const allPoints = originalState.allPoints
-    console.log('upload points from cache to server', allPoints)
     try {
       await setUploadingPointsState(true)
-      let response = await addCachedPointsMutation({
+      await addCachedPointsMutation({
         variables: {
           roundId: currentRoundId,
           pointIds: allPoints.map(point => point.id.toString()),
@@ -306,19 +314,15 @@ const App = (props) => {
         }
       })
       setUploadingPointsState(false)
-      console.log('response', response)
-      console.log('server and local state match', savedState)
     } catch (error) {
       handleError(error)
     }
   }
 
   const deleteLastTrack = async () => {
-    console.log('delete last track')
     deleteLastTrackFromCache(currentRoundId)
   }
   const updatePoint = async (points, userId) => {
-    console.log('add point with points and userId', points, 'trackIndex', trackIndex, userId, currentRoundId)
     addPointToCache(currentRoundId, userId, trackIndex, points)
   }
 
@@ -326,28 +330,29 @@ const App = (props) => {
     setTrackIndex(index)
   }
   const setNewRound = (round) => {
-    console.log('round', round)
     setCurrentRound(round)
     setCurrentRoundId(round.id)
     setTrackIndex(-1)
+    setPage('round')
   }
-  const allLocationsQuery = useQuery(ALL_LOCATIONS)
+  const allLocationsQuery = useQuery(ALL_LOCATIONS, {
+    skip: !token
+  })
   const allUsersQuery = useQuery(ALL_USERS, {
-    skip: false
+    skip: !token
   })
   const allPointsQuery = useQuery(ALL_POINTS, {
-    skip: !currentRoundId,
+    skip: !currentRoundId || !token,
     variables: {
       roundId: currentRoundId
     },
   })
 
   const allRoundsQuery = useQuery(ALL_ROUNDS, {
-    skip: false
+    skip: !token
   })
   const handleLocationClick = (location) =>
     () => {
-      console.log('location clicked', location)
       if (location === currentLocation) {
         setCurrentLocation(null)
       } else {
@@ -356,26 +361,33 @@ const App = (props) => {
     }
   const handleUserClick = (user) =>
     () => {
-      console.log('user clicked', user)
       if (currentPlayers.includes(user)) {
         setCurrentPlayers(currentPlayers.filter(player => player !== user))
       } else {
         setCurrentPlayers(currentPlayers.concat(user))
       }
     }
+
+  const addNewLocation = async (locationName) => {
+    await addLocationMutation(
+      {
+        variables: {
+          name: locationName
+        }
+      }
+    )
+  }
+
   const deleteRound = async (round) => {
-    console.log('delte round with id', round.id)
-    const response = await deleteRoundMutation(
+    await deleteRoundMutation(
       {
         variables: {
           roundId: round.id
         }
       }
     )
-    console.log('response', response)
   }
   const startNewRound = async () => {
-    console.log('start new round', currentLocation.id, currentPlayers.map(user => user.id))
     const response = await addRoundMutation(
       {
         variables: {
@@ -384,22 +396,20 @@ const App = (props) => {
         }
       }
     )
-    console.log('response', response)
-    //setCurrentLocation(null)
-    //setCurrentPlayers([])
     setCurrentRound(response.data.addRound)
     setCurrentRoundId(response.data.addRound.id)
   }
-  const finishRound = () => {
-    console.log('finish round')
+  const finishRound = async () => {
+    await uploadPointsFromCacheToServer()
     setCurrentRound(null)
     setCurrentRoundId(null)
     setCurrentPlayers([])
     setCurrentLocation(null)
     setPage('main')
   }
-  const meQuery = useQuery(ME)
-
+  const meQuery = useQuery(ME, {
+    skip: !token
+  })
   return (
     <Container>
       {token && <Navigation show={true}
@@ -408,7 +418,7 @@ const App = (props) => {
         meQuery={meQuery}
         currentRoundId={currentRoundId} />
       }
-      {errorMessage && <div>errorMessage</div>
+      {errorMessage && <div className="error">{errorMessage}</div>
       }
       {!token &&
         <LoginForm
@@ -417,6 +427,7 @@ const App = (props) => {
           handleError={handleError} />
       }
       {token && !currentRoundId && <AddRound
+        addNewLocation={addNewLocation}
         allLocationsQuery={allLocationsQuery}
         allUsersQuery={allUsersQuery}
         handleLocationClick={handleLocationClick}
@@ -427,7 +438,7 @@ const App = (props) => {
         show={page === 'round'}
       />}
       {token && <Rounds
-        allLocationsQuery={allRoundsQuery}
+        allRoundsQuery={allRoundsQuery}
         setRound={setNewRound}
         deleteRound={deleteRound}
         show={page === 'main'}
@@ -448,7 +459,7 @@ const App = (props) => {
       />}
       <div>
         <br />
-        <em>Frisbeegolf app, Fullstack course 2019 assignment, Juho Taipale</em>
+        <em>Frisbeegolf app {'\u00A9'} 2020 Juho Taipale</em>
       </div>
     </Container>
   )

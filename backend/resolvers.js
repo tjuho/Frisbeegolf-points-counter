@@ -71,21 +71,38 @@ const resolvers = {
           throw new UserInputError('Round not found');
         }
       }
-      if (currentUser) {
+      if (args.location) {
         let rounds = await Round
-          .find({ users: currentUser })
+          .find({})
           .populate('users')
           .populate('location')
+        rounds = rounds.filter(round => round.location.name = args.location)
         return rounds
       }
-      let rounds = await Round
-        .find({})
+      const rounds = await Round
+        .find({ users: currentUser })
         .populate('users')
         .populate('location')
-      if (args.location) {
-        rounds = rounds.filter(round => round.location.name = args.location)
-      }
       return rounds
+      let result = []
+      for (const round of rounds) {
+        let totals = []
+        for (const user of round.users) {
+          const points = await Point.find({ round, user })
+          const tempt = points.map(point => point.points)
+          const total = tempt.reduce((acc, value) => acc + value)
+          totals.push(total)
+        }
+        result.push({
+          users: round.users,
+          id: round._id,
+          date: round.date,
+          location: round.location,
+          __v: round.__v,
+          totals,
+        })
+      }
+      return result
     },
     allPoints: async (root, args, { currentUser }) => {
       if (!currentUser) {
@@ -229,17 +246,20 @@ const resolvers = {
       if (!currentUser) {
         throw new UserInputError('invalid token');
       }
+      //let totals = []
+      //args.userIds.forEach(user => { totals.push(0) })
       const round = new Round({
         location: args.locationId,
         users: args.userIds,
-        date: new Date()
+        date: new Date(),
       })
       try {
         await round
           .save()
-        return await Round.findById(round._id)
+        const savedRound = await Round.findById(round._id)
           .populate('location')
           .populate('users')
+        return savedRound
       } catch (error) {
         throw new UserInputError(error.message, {
           invalidArgs: args
@@ -341,6 +361,7 @@ const resolvers = {
       if (!currentUser) {
         throw new UserInputError('invalid token');
       }
+      console.log('unwanted')
       const round = await Round
         .findById(args.roundId)
         .populate('user')
@@ -428,10 +449,10 @@ const resolvers = {
       const roundId = args.roundId
       const round = await Round.findById(roundId)
       if (!round) {
-        throw new UserInputError('Round id not found');
+        throw new UserInputError('round id not found');
       }
-      if (round.users.filter(user => user === currentUser).length < 1) {
-        throw new UserInputError('Unauthorized deletion of round');
+      if (round.users.filter(user => user._id.toString() === currentUser._id.toString()).length < 1) {
+        throw new UserInputError('unauthorized');
       }
       await Point.deleteMany({ round })
       const result = await Round.findByIdAndDelete(roundId)
@@ -446,11 +467,10 @@ const resolvers = {
       return res
     }
   },
-  /*
   Subscription: {
-    playAdded: {
-      subscribe: () => pubsub.asyncIterator(['PLAY_ADDED'])
+    pointAdded: {
+      subscribe: () => pubsub.asyncIterator(['POINT_ADDED'])
     }
-  }*/
+  }
 }
 module.exports = resolvers

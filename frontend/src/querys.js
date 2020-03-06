@@ -130,3 +130,14 @@ export const ADD_CACHED_POINTS = gql`
     }
   }
 `
+export const SUBSCRIBE_POINT_ADDED = gql`
+subscription($roundId: ID!){
+  pointAdded(roundId: $roundId) {
+    trackIndex,
+    user{id},
+    round{id},
+    points,
+    id
+  }
+}
+`

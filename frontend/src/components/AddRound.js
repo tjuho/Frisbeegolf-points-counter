@@ -1,4 +1,5 @@
 import React from 'react'
+import AddLocation from './AddLocation'
 
 const AddRound = (props) => {
   if (!props.show) {
@@ -16,15 +17,13 @@ const AddRound = (props) => {
   }
 
   if (props.allLocationsQuery.loading || props.allUsersQuery.loading) {
-    console.log('loading')
     return <div>loading...</div>
   }
   if (props.allLocationsQuery.error || props.allUsersQuery.error) {
-    console.log('errors', props.allUsersQuery.error, props.allLocationsQuery.error)
+    //    console.log('errors', props.allUsersQuery.error, props.allLocationsQuery.error)
     return <div>error...</div>
   }
   if (!currentLocation) {
-    // select location
     return (
       <div>
         <h3>Select location</h3>
@@ -44,6 +43,8 @@ const AddRound = (props) => {
             </tbody>
           </table>
         </div>
+        <AddLocation show={true}
+          addNewLocation={props.addNewLocation} />
       </div>
     )
   }
@@ -93,7 +94,6 @@ const AddRound = (props) => {
           </tbody>
         </table>
       </div>
-
     </div>
   )
 }

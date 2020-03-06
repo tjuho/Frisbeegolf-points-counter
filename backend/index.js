@@ -9,18 +9,23 @@ const typeDefs = require('./typeDefs')
 const jwt = require('jsonwebtoken')
 const config = require('./utils/config')
 const User = require('./models/User')
+const { withFilter } = require('graphql-subscriptions')
 //const cors = require('cors')
 //app.use(cors())
 const JWT_SECRET = config.jwtSecret
 const PORT = config.port
-console.log('mongo url', config.mongoUrl)
+const URL = config.mongoUrl
+if (!URL) {
+  console.log('mongodb url not found. If using development mode, run the backend with command "npm run watch"')
+}
+console.log('mongo url', URL)
 mongoose.set('useFindAndModify', false)
-mongoose.connect(config.mongoUrl, { useNewUrlParser: true })
+mongoose.connect(URL, { useNewUrlParser: true })
   .then(() => {
     console.log('connected to MongoDB')
   })
   .catch((error) => {
-    console.log('error connection to MongoDB:', error.message)
+    console.log('error connecting to MongoDB:', error.message)
   })
 
 const server = new ApolloServer({
@@ -35,7 +40,30 @@ const server = new ApolloServer({
       const currentUser = await User.findById(decodedToken.id)
       return { currentUser }
     }
-  }
+  },
+  subscriptions: {
+    onConnect: (connectionParams, webSocket) => {
+      if (connectionParams.authToken) {
+        return validateToken(connectionParams.authToken)
+          .then(findUser(connectionParams.authToken))
+          .then(user => {
+            return {
+              currentUser: user,
+            };
+          });
+      }
+
+      throw new Error('invalid token');
+    },
+    pointAdded: {
+      subscribe: withFilter(
+        () => pubsub.asyncIterator('POINT_ADDED'),
+        (payload, variables) => {
+          return payload.pointAdded.round === variables.roundId;
+        },
+      ),
+    }
+  },
 })
 
 app.use(express.static('build'))

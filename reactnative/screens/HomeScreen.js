@@ -399,8 +399,8 @@ const HomeScreen = (props) => {
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      <Text style={{ fontSize: 20, paddingVertical: 15, alignSelf: "center" }}>Frisbeegolf app</Text>
+    <View style={{ flex: 1, paddingTop: 20 }}>
+      <Text style={{ fontSize: 20, paddingBottom: 15, alignSelf: "center" }}>Frisbeegolf app</Text>
       {token && <Navigation show={true}
         doLogout={doLogout}
         setPage={setPage}
@@ -446,7 +446,7 @@ const HomeScreen = (props) => {
       />}
       < View style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-end', padding: 10 }} >
         <Text>
-          Frisbeegolf app, Fullstack course 2019 assignment, Juho Taipale
+          Frisbeegolf app {'\u00A9'} 2020 Juho Taipale
         </Text>
       </View >
     </View >

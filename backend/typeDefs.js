@@ -21,6 +21,7 @@ const typeDefs = gql`
       users: [User!]!      
       date: Date!
       id: ID!
+      totals: [Int!]
     }
     type Play {
       round: Round!
@@ -103,7 +104,9 @@ const typeDefs = gql`
       ): Location
     }
     type Subscription {
-      playAdded: Play
+      pointAdded(
+        roundId: ID!
+      ): Play
     }
     `
 module.exports = typeDefs

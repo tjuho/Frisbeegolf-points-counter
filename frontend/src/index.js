@@ -27,7 +27,7 @@ console.log('http uri', httpUri)
 
 const wsLink = new WebSocketLink({
   uri: wsuri,
-  options: { reconnect: true }
+  //options: { reconnect: true }
 })
 
 const httpLink = createHttpLink({

@@ -1,4 +1,5 @@
 import React from 'react';
+import '../styles.css'
 
 const Navigation = (props) => {
   if (!props.show) {
@@ -23,13 +24,13 @@ const Navigation = (props) => {
   const currentRoundId = props.currentRoundId
   return (
     <div className="ui secondary menu">
-      <div className="item" onClick={() => { setPage('main'); console.log('main') }}>main</div>
+      <div className="item pointer" onClick={() => { setPage('main'); console.log('main') }}>main</div>
       {currentRoundId ?
-        <div className="item" onClick={() => { setPage('round'); console.log('continue round') }}>continue round</div>
-        : <div className="item" onClick={() => { setPage('round'); console.log('new round') }}>new round</div>
+        <div className="item pointer" onClick={() => { setPage('round'); console.log('continue round') }}>continue round</div>
+        : <div className="item pointer" onClick={() => { setPage('round'); console.log('new round') }}>new round</div>
       }
       <div className="item">{user.username} {user.admin ? '(admin) ' : ''}logged in</div>
-      <div className="item" onClick={() => { setPage(null); doLogout() }}>logout</div>
+      <div className="item pointer" onClick={() => { setPage(null); doLogout() }}>logout</div>
 
     </div>
   )

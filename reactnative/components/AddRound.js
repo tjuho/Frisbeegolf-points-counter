@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { styles } from '../utils/styles'
 const AddRound = (props) => {
 
   if (!props.show) {
@@ -68,12 +69,6 @@ const AddRound = (props) => {
     return (
       <View>
         <Text>{currentLocation.name}</Text>
-        {
-          currentPlayers.length > 0 && currentLocation &&
-          <View>
-            <TouchableOpacity onPress={startNewRound}><Text>START</Text></TouchableOpacity>
-          </View>
-        }
         <View>
           <Text>Selected players</Text>
           <Users
@@ -86,6 +81,14 @@ const AddRound = (props) => {
             allUsersQuery={selectableUsersQuery}
             handleUserClick={props.handleUserClick} />
         </View >
+        {
+          currentPlayers.length > 0 && currentLocation &&
+          <View style={styles.button}>
+            <TouchableOpacity onPress={startNewRound}>
+              <Text style={styles.buttonText}>Start</Text>
+            </TouchableOpacity>
+          </View>
+        }
       </View>
     )
   }

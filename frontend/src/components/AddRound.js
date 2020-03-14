@@ -11,7 +11,7 @@ const AddRound = (props) => {
   const currentPlayers = props.currentPlayers
 
   const startNewRound = (event) => {
-    console.log('start new round with', currentLocation, currentPlayers)
+    //console.log('start new round with', currentLocation, currentPlayers)
     event.preventDefault()
     props.startNewRound()
   }
@@ -51,7 +51,7 @@ const AddRound = (props) => {
   return (
     <div>
       <h3>New round</h3>
-      <div onClick={props.handleLocationClick(currentLocation)}>
+      <div className='ui button' onClick={props.handleLocationClick(currentLocation)}>
         {currentLocation.name}
       </div>
       <div>

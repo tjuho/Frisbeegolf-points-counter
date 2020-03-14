@@ -16,7 +16,6 @@ const Round = (props) => {
     return null
   }
   if (!props.round) {
-    console.log('no round chosen')
     return null
   }
   if (props.allPointsQuery.loading) {
@@ -37,12 +36,9 @@ const Round = (props) => {
 
   const maxTrackIndex = maxValue(allPoints.map(play => play.trackIndex), -1)
   if (trackIndex === -1 && maxTrackIndex > -1) {
+    //    console.log('change track index to', maxTrackIndex)
     props.changeTrack(maxTrackIndex)
     return null
-  }
-  if (allPoints.length === 0) {
-    props.addNewTrack()
-    props.changeTrack(0)
   }
   const handleDeleteLastTrackClick = () => {
     props.deleteLastTrack()

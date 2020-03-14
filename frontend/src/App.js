@@ -44,7 +44,18 @@ const App = (props) => {
   const getRandomId = () => {
     return crypto.randomBytes(16).toString("hex")
   }
-
+  const getPlayerTotals = (round, points) => {
+    const roundId = round.id
+    const users = round.users
+    let totals = []
+    const roundPoints = points.filter(point => point.round.id.toString() === roundId.toString())
+    users.forEach(user => {
+      const userRoundPoints = roundPoints.filter(roundPoint => roundPoint.user.id.toString() === user.id.toString()).map(point => point.points)
+      const total = userRoundPoints.reduce((acc, points) => acc + points, 0)
+      totals.push(total)
+    })
+    return totals
+  }
   const doLogin = async (username, password) => {
     const response = await loginMutation({
       variables: {
@@ -61,6 +72,7 @@ const App = (props) => {
         localStorage.setItem('username', loginUsername)
         setToken(loginToken)
         setPage('main')
+        setErrorMessage(null)
       }
     }
   }
@@ -72,7 +84,7 @@ const App = (props) => {
   }
   useTimeout(doLogout)
   if (props.sessionTimeout) {
-    console.log('session time out received')
+    console.log('session timed out')
     doLogout()
   }
   const handleError = (error) => {
@@ -107,10 +119,10 @@ const App = (props) => {
         },
       })
       const localPoints = dataInStore.allPoints
+      let okState = true
       setSavedState(true)
       if (serverPoints.length !== localPoints.length) {
-        setSavedState(false)
-
+        okState = false
       } else {
         serverPoints.forEach(serverPoint => {
           let foundMatch = false
@@ -124,26 +136,32 @@ const App = (props) => {
             }
           })
           if (!foundMatch) {
-            setSavedState(false)
+            okState = false
           }
         });
         //TODO: update the points in the all rounds view
-        /*
-        if (savedState && serverPoints.length > 0) {
+        if (okState && serverPoints.length > 0) {
           const roundId = serverPoints[0].round.id
           const allRoundsInStore = store.readQuery({
             query: ALL_ROUNDS
           })
-          allRoundsInStore.allRounds.forEach(round => {
-            if (round.id === roundId) {
-
+          const totals = getPlayerTotals(currentRound, serverPoints)
+          const filteredRound = allRoundsInStore.allRounds.filter(round => round.id.toString() === roundId.toString())[0]
+          const savedRound = {
+            ...filteredRound,
+            totals: totals
+          }
+          const filteredRounds = allRoundsInStore.allRounds.filter(round => round.id.toString() !== roundId.toString())
+          store.writeQuery({
+            query: ALL_ROUNDS,
+            data: {
+              allRounds: filteredRounds.concat(savedRound)
             }
-          })*//*
-    store.writeQuery({
-      query: ALL_ROUNDS
-    })
-  }*/
+          })
+
+        }
       }
+      setSavedState(okState)
     }
   })
 
@@ -153,11 +171,8 @@ const App = (props) => {
       let dataInStore = store.readQuery({
         query: ALL_ROUNDS
       })
-      console.log('data in store before', dataInStore.allRounds)
       const addedRound = response.data.addRound
       const temp = dataInStore.allRounds.filter(round => round.id !== addedRound.id).concat(addedRound)
-      console.log('added round', addedRound)
-      console.log('all rounds', temp)
       client.writeQuery({
         query: ALL_ROUNDS,
         data: { allRounds: temp }
@@ -292,6 +307,7 @@ const App = (props) => {
   }
 
   const uploadPointsFromCacheToServer = async () => {
+
     const originalState = client.readQuery({
       query: ALL_POINTS,
       variables: {
@@ -459,7 +475,7 @@ const App = (props) => {
       />}
       <div>
         <br />
-        <em>Frisbeegolf app {'\u00A9'} 2020 Juho Taipale</em>
+        <em>Frisbeegolf app, copyright 2020 Juho Taipale</em>
       </div>
     </Container>
   )

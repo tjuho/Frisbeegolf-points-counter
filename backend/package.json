@@ -13,24 +13,24 @@
   "author": "Juho Taipale",
   "license": "MIT",
   "dependencies": {
-    "apollo-server": "^2.4.8",
-    "apollo-server-express": "^2.9.2",
-    "bcrypt": "^3.0.6",
+    "apollo-server": "^2.11.0",
+    "apollo-server-express": "^2.11.0",
+    "bcrypt": "^3.0.8",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "graphql": "^14.4.2",
+    "graphql": "^14.6.0",
     "http": "0.0.0",
     "jsonwebtoken": "^8.5.1",
-    "mongoose": "^5.4.22",
+    "mongoose": "^5.9.4",
     "mongoose-unique-validator": "^2.0.2",
     "path": "^0.12.7"
   },
   "devDependencies": {
-    "apollo-server-testing": "^2.9.15",
+    "apollo-server-testing": "^2.11.0",
     "dotenv": "^7.0.0",
-    "graphql-tag": "^2.10.1",
-    "jest": "^24.1.0",
-    "nodemon": "^1.18.10",
+    "graphql-tag": "^2.10.3",
+    "jest": "^24.9.0",
+    "nodemon": "^1.19.4",
     "supertest": "^3.4.2"
   },
   "jest": {

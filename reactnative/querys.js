@@ -31,6 +31,7 @@ export const ALL_ROUNDS = gql`
     location{name, id}
     date
     id
+    totals
   }
 }
 `
@@ -89,6 +90,7 @@ export const ADD_ROUND = gql`
       }
       date
       id
+      totals
     }
   }
 `

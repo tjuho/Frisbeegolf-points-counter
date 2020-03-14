@@ -28,10 +28,10 @@ if (__DEV__) {
   androidhttp = 'http://10.0.2.2:4000/graphql'
   webhttp = 'http://localhost:4000/graphql'
   wsuri = `ws://localhost:4000/graphql`
-  console.log('start dev')
+  console.log('start in development mode')
 }
 
-//console.log('http', webhttp, 'ws link', wsuri)
+console.log('http', webhttp, 'ws link', wsuri)
 
 const httpLink = new HttpLink({
   uri: Platform.select({

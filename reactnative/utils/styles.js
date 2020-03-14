@@ -17,7 +17,8 @@ const styles = {
 
   buttonText: {
     fontSize: 16,
-    color: '#fff'
+    color: '#fff',
+    textAlign: 'center'
   },
   cellText: {
     fontSize: 16,

@@ -21,19 +21,6 @@ const maxValue = (arr) => {
   return temp
 }
 
-const getPlayerTotals = (round, points) => {
-  const roundId = round.id
-  const users = round.users
-  let totals = []
-  const roundPoints = points.filter(point => point.round.id.toString() === roundId.toString())
-  users.forEach(user => {
-    const userRoundPoints = roundPoints.filter(roundPoint => roundPoint.user.id.toString() === user.id.toString()).map(point => point.points)
-    const total = userRoundPoints.reduce((acc, points) => acc + points, 0)
-    totals.push(total)
-  })
-  return totals
-}
-
 const resolvers = {
   Date: new GraphQLScalarType({
     name: 'Date',
@@ -73,7 +60,6 @@ const resolvers = {
       if (!currentUser) {
         throw new UserInputError('invalid token');
       }
-      /*
       if (args.id) {
         let round = await Round
           .findById(args.id)
@@ -93,21 +79,19 @@ const resolvers = {
         rounds = rounds.filter(round => round.location.name = args.location)
         return rounds
       }
-      */
       const rounds = await Round
-        //.find({ users: currentUser })
-        .find({})
+        .find({ users: currentUser })
         .populate('users')
         .populate('location')
+      return rounds
       let result = []
       for (const round of rounds) {
         let totals = []
         for (const user of round.users) {
           const points = await Point.find({ round, user })
           const tempt = points.map(point => point.points)
-          totals.push(tempt.length > 0 ?
-            tempt.reduce((acc, value) => acc + value)
-            : 0)
+          const total = tempt.reduce((acc, value) => acc + value)
+          totals.push(total)
         }
         result.push({
           users: round.users,
@@ -262,6 +246,8 @@ const resolvers = {
       if (!currentUser) {
         throw new UserInputError('invalid token');
       }
+      //let totals = []
+      //args.userIds.forEach(user => { totals.push(0) })
       const round = new Round({
         location: args.locationId,
         users: args.userIds,
@@ -270,43 +256,16 @@ const resolvers = {
       try {
         await round
           .save()
-
         const savedRound = await Round.findById(round._id)
           .populate('location')
           .populate('users')
-        let totals = []
-        for (let i = 0; i < args.userIds.length; i++) {
-          const user = await User.findById(args.userIds[i])
-          const newPoint = new Point({
-            round,
-            user,
-            trackIndex: 0,
-            points: 3
-          })
-          try {
-            await newPoint
-              .save()
-            totals.push(3)
-          } catch (error) {
-            throw new UserInputError(error.message, {
-              invalidArgs: args
-            })
-          }
-        }
-        return {
-          users: savedRound.users,
-          id: savedRound._id,
-          date: savedRound.date,
-          location: savedRound.location,
-          __v: savedRound.__v,
-          totals,
-        }
+        return savedRound
       } catch (error) {
         throw new UserInputError(error.message, {
           invalidArgs: args
         })
       }
-    },/*
+    },
     addPoint: async (root, args, { currentUser }) => {
       if (!currentUser) {
         throw new UserInputError('invalid token');
@@ -335,7 +294,7 @@ const resolvers = {
       return await Point.findById(point.id)
         .populate('round')
         .populate('user')
-    },*/
+    },
 
     addCachedPoints: async (root, args, { currentUser }) => {
       if (!currentUser) {
@@ -489,15 +448,12 @@ const resolvers = {
       }
       const roundId = args.roundId
       const round = await Round.findById(roundId)
-        .populate('users')
       if (!round) {
         throw new UserInputError('round id not found');
       }
-      /*
       if (round.users.filter(user => user._id.toString() === currentUser._id.toString()).length < 1) {
         throw new UserInputError('unauthorized');
       }
-      */
       await Point.deleteMany({ round })
       const result = await Round.findByIdAndDelete(roundId)
       return result

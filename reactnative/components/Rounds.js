@@ -21,6 +21,10 @@ const Rounds = (props) => {
   if (props.result.error) {
     return <View><Text>error...</Text></View>
   }
+  const rounds = props.result.data.allRounds
+  if (rounds.length < 1) {
+    return (<View><Text style={{ alignSelf: 'center' }}>No rounds found. Create a new round by clicking New Round button</Text></View>)
+  }
   const handleRoundClick = (round) =>
     () => {
       props.setRound(round)
@@ -29,7 +33,7 @@ const Rounds = (props) => {
     () => {
       props.deleteRound(round)
     }
-  const rounds = props.result.data.allRounds
+
   rounds.sort((r1, r2) => r2.date - r1.date)
   if (!rounds) {
     return null
@@ -64,7 +68,6 @@ const Rounds = (props) => {
       </TouchableOpacity>
     </View>
   )
-
   const createComponentTable = () => {
     let table = []
     let row = []
@@ -77,9 +80,12 @@ const Rounds = (props) => {
       row = []
       row.push(<ClickableRoundCell round={round} />)
       const d = new Date(round.date)
-      const dateString = d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds()
+      const dateString = d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear() + ' '
+        + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds()
       row.push(<TextCell text={dateString} />)
-      row.push(<ArrayTextCell array={round.users.map(user => user.username)} />)
+      row.push(<ArrayTextCell array={round.users
+        .map((user, index) =>
+          '' + user.username + (round.totals && round.totals.length === round.users.length ? ':' + round.totals[index] : ''))} />)
       row.push(<DelButton round={round} />)
       table.push(row)
     })

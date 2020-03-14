@@ -1,6 +1,7 @@
 import React from 'react'
 import Locations from './Locations'
 import Users from './Users'
+import AddLocation from './AddLocation'
 import {
   Image,
   Platform,
@@ -20,7 +21,9 @@ const AddRound = (props) => {
   const startNewRound = () => {
     props.startNewRound()
   }
-
+  const handleCurrentLocationClick = () => {
+    props.handleLocationClick(currentLocation)
+  }
   if (props.allLocationsQuery.loading || props.allUsersQuery.loading) {
     console.log('loading')
     return <View><Text>loading...</Text></View>
@@ -51,11 +54,12 @@ const AddRound = (props) => {
     ...props.allUsersQuery,
     data: selectedUsers
   }
+  /*
   console.log('all users query', props.allUsersQuery)
   console.log('selectable users', selectableUsersQuery.data.allUsers)
   console.log('selected users', selectedUsersQuery.data.allUsers)
   console.log('selected users query', selectedUsersQuery)
-
+*/
   if (!currentLocation) {
     return (
       <View>
@@ -63,20 +67,25 @@ const AddRound = (props) => {
         <Locations
           allLocationsQuery={props.allLocationsQuery}
           handleLocationClick={props.handleLocationClick} />
+        <AddLocation show={true}
+          addNewLocation={props.addNewLocation} />
       </View >
     )
   } else {
     return (
       <View>
-        <Text>{currentLocation.name}</Text>
+        <TouchableOpacity
+          onClick={handleCurrentLocationClick}>
+          <Text>{currentLocation.name}</Text>
+        </TouchableOpacity>
         <View>
           <Text>Selected players</Text>
           <Users
             allUsersQuery={selectedUsersQuery}
             handleUserClick={props.handleUserClick} />
         </View>
+        <Text>Select players</Text>
         <View>
-          <Text>Select players</Text>
           <Users
             allUsersQuery={selectableUsersQuery}
             handleUserClick={props.handleUserClick} />

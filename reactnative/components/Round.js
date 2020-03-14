@@ -61,10 +61,6 @@ const Round = (props) => {
     props.changeTrack(maxTrackIndex)
     return null
   }
-  if (allPoints.length === 0) {
-    props.addNewTrack()
-    props.changeTrack(0)
-  }
   const handleDeleteLastTrackClick = () => {
     props.deleteLastTrack()
   }
@@ -120,11 +116,11 @@ const Round = (props) => {
   const TrackIndex = () => (
     <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
       <TouchableOpacity style={styles.button} onPress={handleTrackIndexChangeClick(selectedTrackIndex - 1)}>
-        <Text style={styles.buttonText}>-</Text>
+        <Text style={styles.buttonText}>{'<--'}</Text>
       </TouchableOpacity>
       <Text style={styles.cellText}>Track {selectedTrackIndex + 1}</Text>
       <TouchableOpacity style={styles.button} onPress={handleTrackIndexChangeClick(selectedTrackIndex + 1)}>
-        <Text style={styles.buttonText}>+</Text>
+        <Text style={styles.buttonText}>{'-->'}</Text>
       </TouchableOpacity>
     </View>
   )
@@ -230,7 +226,7 @@ const Round = (props) => {
           </View>
         ))}
       </View>
-      <View style={{ flexDirection: 'row' }}>
+      <View style={{ flexDirection: 'row', paddingTop: 10 }}>
         <MyButton text='DELETE LAST TRACK' action={handleDeleteLastTrackClick} />
         <MyButton text='FINISH ROUND' action={handleRoundFinishClick} />
         <MyButton text='UPLOAD POINTS' action={handleUploadPointsClick} disabled={buttonDisabled} />

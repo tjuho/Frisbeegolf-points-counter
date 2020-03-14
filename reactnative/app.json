@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "frisbeegolf app",
-    "slug": "frisbapp",
+    "slug": "frisbeegolfapp",
     "privacy": "unlisted",
     "sdkVersion": "35.0.0",
     "platforms": [
@@ -9,7 +9,7 @@
       "android",
       "web"
     ],
-    "version": "1.0.0",
+    "version": "1.0.1",
     "icon": "./assets/images/app_icon.png",
     "splash": {
       "image": "./assets/images/app_icon.png",
@@ -24,11 +24,11 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.krooh.frisbapp"
+      "bundleIdentifier": "com.krooh.frisbeegolfapp"
     },
     "android": {
-      "package": "com.krooh.frisbapp"
+      "package": "com.krooh.frisbeegolfapp"
     },
-    "description": "Frisbeegolf application. This is a programming assignment for Fullstack 2019 mooc course of the Helsinki University"
+    "description": "Frisbeegolf score application."
   }
 }

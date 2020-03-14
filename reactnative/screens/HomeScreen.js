@@ -63,6 +63,56 @@ const HomeScreen = (props) => {
       })
   }, [])
 
+  const getPlayerTotals = (round, points) => {
+    const roundId = round.id
+    const users = round.users
+    let totals = []
+    const roundPoints = points.filter(point => point.round.id.toString() === roundId.toString())
+    users.forEach(user => {
+      const userRoundPoints = roundPoints.filter(roundPoint => roundPoint.user.id.toString() === user.id.toString()).map(point => point.points)
+      const total = userRoundPoints.reduce((acc, points) => acc + points, 0)
+      console.log('total', total)
+      totals.push(total)
+    })
+    return totals
+  }
+  /*
+    const [addCachedPointsMutation] = useMutation(ADD_CACHED_POINTS, {
+      onError: handleError,
+      update: (store, response) => {
+        const serverPoints = response.data.addCachedPoints
+        let dataInStore = store.readQuery({
+          query: ALL_POINTS,
+          variables: {
+            roundId: currentRoundId
+          },
+        })
+        const localPoints = dataInStore.allPoints
+        setSavedState(true)
+        if (serverPoints.length !== localPoints.length) {
+          setSavedState(false)
+  
+        } else {
+          serverPoints.forEach(serverPoint => {
+            let foundMatch = false
+            localPoints.forEach(localPoint => {
+              if (serverPoint.round.id === localPoint.round.id
+                && serverPoint.user.id === localPoint.user.id
+                && serverPoint.trackIndex === localPoint.trackIndex
+                && serverPoint.points === localPoint.points) {
+                foundMatch = true
+                return
+              }
+            })
+            if (!foundMatch) {
+              setSavedState(false)
+            }
+          });
+        }
+      }
+    })
+  */
+  // uploads cached points to server
   const [addCachedPointsMutation] = useMutation(ADD_CACHED_POINTS, {
     onError: handleError,
     update: (store, response) => {
@@ -74,10 +124,10 @@ const HomeScreen = (props) => {
         },
       })
       const localPoints = dataInStore.allPoints
+      let okState = true
       setSavedState(true)
       if (serverPoints.length !== localPoints.length) {
-        setSavedState(false)
-
+        okState = false
       } else {
         serverPoints.forEach(serverPoint => {
           let foundMatch = false
@@ -91,10 +141,32 @@ const HomeScreen = (props) => {
             }
           })
           if (!foundMatch) {
-            setSavedState(false)
+            okState = false
           }
         });
+        //TODO: update the points in the all rounds view
+        if (okState && serverPoints.length > 0) {
+          const roundId = serverPoints[0].round.id
+          const allRoundsInStore = store.readQuery({
+            query: ALL_ROUNDS
+          })
+          const totals = getPlayerTotals(currentRound, serverPoints)
+          const filteredRound = allRoundsInStore.allRounds.filter(round => round.id.toString() === roundId.toString())[0]
+          const savedRound = {
+            ...filteredRound,
+            totals: totals
+          }
+          const filteredRounds = allRoundsInStore.allRounds.filter(round => round.id.toString() !== roundId.toString())
+          store.writeQuery({
+            query: ALL_ROUNDS,
+            data: {
+              allRounds: filteredRounds.concat(savedRound)
+            }
+          })
+
+        }
       }
+      setSavedState(okState)
     }
   })
 
@@ -129,7 +201,20 @@ const HomeScreen = (props) => {
   const [loginMutation] = useMutation(LOGIN, {
     onError: handleError
   })
-
+  const [addLocationMutation] = useMutation(ADD_LOCATION, {
+    onError: handleError,
+    update: (store, response) => {
+      let dataInStore = store.readQuery({
+        query: ALL_LOCATIONS
+      })
+      const addedLocation = response.data.addLocation
+      const temp = dataInStore.allLocations.filter(location => location.id !== addedLocation.id).concat(addedLocation)
+      client.writeQuery({
+        query: ALL_LOCATIONS,
+        data: { allLocations: temp }
+      })
+    }
+  })
   const getRandomId = () => {
     const min = 1;
     const max = 1000000;
@@ -182,7 +267,7 @@ const HomeScreen = (props) => {
         setErrorMessage(null)
       }, 10000)
     }
-    else if (error.networkError) {
+    else if (error.networkError && error.networkError.result) {
       const errorArray = error.networkError.result.errors
       if (errorArray && errorArray.length > 0) {
         setErrorMessage(errorArray[0].message)
@@ -300,7 +385,7 @@ const HomeScreen = (props) => {
     const allPoints = originalState.allPoints
     try {
       await setUploadingPointsState(true)
-      let response = await addCachedPointsMutation({
+      await addCachedPointsMutation({
         variables: {
           roundId: currentRoundId,
           pointIds: allPoints.map(point => point.id.toString()),
@@ -329,6 +414,7 @@ const HomeScreen = (props) => {
     setCurrentRound(round)
     setCurrentRoundId(round.id)
     setTrackIndex(-1)
+    setPage('round')
   }
   const allLocationsQuery = useQuery(ALL_LOCATIONS, {
     onError: handleError,
@@ -390,12 +476,29 @@ const HomeScreen = (props) => {
     setCurrentRound(response.data.addRound)
     setCurrentRoundId(response.data.addRound.id)
   }
-  const finishRound = () => {
+  const finishRound = async () => {
+    await uploadPointsFromCacheToServer()
     setCurrentRound(null)
     setCurrentRoundId(null)
     setCurrentPlayers([])
     setCurrentLocation(null)
     setPage('main')
+  }
+  const addNewLocation = async (locationName) => {
+    await addLocationMutation(
+      {
+        variables: {
+          name: locationName
+        }
+      }
+    )
+  }
+  const moveToPage = (pageName) => {
+    setPage(pageName)
+    if (pageName === 'main') {
+      setCurrentLocation(null)
+      setCurrentPlayers([])
+    }
   }
 
   return (
@@ -422,6 +525,7 @@ const HomeScreen = (props) => {
         currentLocation={currentLocation}
         currentPlayers={currentPlayers}
         startNewRound={startNewRound}
+        addNewLocation={addNewLocation}
         show={page === 'round'}
       />}
       {token && <Rounds
@@ -446,7 +550,7 @@ const HomeScreen = (props) => {
       />}
       < View style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-end', padding: 10 }} >
         <Text>
-          Frisbeegolf app {'\u00A9'} 2020 Juho Taipale
+          Frisbeegolf app copyright 2020 Juho Taipale
         </Text>
       </View >
     </View >

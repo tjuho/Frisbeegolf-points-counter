@@ -1,4 +1,4 @@
-Harjoitustyö Fullstack 2019 kurssiin. Tekijä: Juho Taipale
+Frisbeegolf pistelaskuri. Harjoitustyö Fullstack 2019 kurssiin. Tekijä: Juho Taipale
 
 selain applikaatio löytyy osoitteesta:
 http://frisbeegolfappi.herokuapp.com/

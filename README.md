@@ -1,4 +1,4 @@
-# Frisbee golf points calculator
+# Frisbee golf points counter
 
 Keeps track of the number of throws when you progress the frisbee golf course. It works in the browser and you can input all of your group's points. The stack is React + Node.js + Express + MongoDB. There are two frontends available: normal browser frontend and react native frontend to be used with mobile phones.
 

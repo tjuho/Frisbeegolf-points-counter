@@ -5,7 +5,10 @@ Keeps track of the number of throws when you progress the frisbee golf course. I
 ## Installing and running the app locally
 
 Node.js is required to run the app.
-Clone the repository and run npm install in each of the directories: backend, frontend and reactnative.
+
+Clone the repository 
+
+Run npm install in each of the directories: backend, frontend and reactnative.
 
 The backend is run in its folder with: npm run watch
 
@@ -15,7 +18,7 @@ React native frontend is run in its folder with: npm start
 
 ## Live demo
 
-The app is deployed at http://frisbeegolfappi.herokuapp.com/ but unfortunatly you will need credentials from me to try it out.
+Not available at the moment.
 
 ## Some remaining issues
 
@@ -26,21 +29,3 @@ There is no signup system at the moment.
 The look and feel of the frontends are very basic and would require more work if the app would be made open to public.
 
 Testing is very basic.
-
-## Finnish dercription below
-
-Frisbeegolf pistelaskuri. Harjoitustyö Fullstack 2019 kurssiin.
-
-Selain applikaatio löytyy osoitteesta:
-http://frisbeegolfappi.herokuapp.com/
-
-React native käyttöliittymä löytyy osoitteesta (ei toimi enää/not working anymore):
-~~https://expo.io/@krooh/frisbeegolfapp~~
-
-Backend, frontend ja react native frontend voidaan ajaa myös lokaalisti normaalisti kloonaamalla repo ja asentamalla ne ajamalla komento npm install kussakin hakemistossa.
-
-Backend voidaan ajaa lokaalisti komennolla npm run watch
-
-Frontend voidaan ajaa lokaalisti komennolla npn start
-
-React native frontend voidaan ajaa lokaalisti komennolla npm start
